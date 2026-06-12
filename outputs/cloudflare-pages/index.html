@@ -1,0 +1,3426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Plenser R&D — Innovation & Performance Tracker</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<script>
+tailwind.config = {
+  darkMode: 'class',
+  theme: {
+    extend: {
+      colors: {
+        primary: { DEFAULT: '#2563eb', foreground: '#ffffff' },
+        secondary: { DEFAULT: '#f1f5f9', foreground: '#0f172a' },
+        destructive: { DEFAULT: '#ef4444', foreground: '#ffffff' },
+        muted: { DEFAULT: '#f1f5f9', foreground: '#64748b' },
+        accent: { DEFAULT: '#f1f5f9', foreground: '#0f172a' },
+        border: '#e2e8f0',
+        input: '#e2e8f0',
+        ring: '#2563eb',
+        background: '#ffffff',
+        foreground: '#0f172a',
+        card: { DEFAULT: '#ffffff', foreground: '#0f172a' },
+      }
+    }
+  }
+}
+</script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+* { font-family: 'Inter', sans-serif; }
+body { background: #f8fafc; }
+.sidebar { transition: width 0.3s; }
+.card-hover:hover { box-shadow: 0 4px 20px rgba(0,0,0,0.08); transform: translateY(-1px); }
+.gantt-bar { transition: all 0.3s; }
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+.modal-overlay { animation: fadeIn 0.2s; }
+.modal-content { animation: slideUp 0.2s; }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+.toast { animation: slideInRight 0.3s; }
+@keyframes slideInRight { from { transform: translateX(100%); } to { transform: translateX(0); } }
+</style>
+</head>
+<body class="min-h-screen">
+<div id="app"></div>
+
+<script>
+// ===================== DATA STORE =====================
+const STORAGE_KEY = 'plenser_rd_data';
+
+const defaultData = {
+  "users": [
+    {
+      "avatar": null,
+      "id": "admin-1",
+      "name": "Admin User",
+      "email": "admin@plenser.com",
+      "role": "admin",
+      "teamId": null,
+      "password": "admin123",
+      "status": "active",
+      "createdAt": "2026-06-10T02:56:29.601Z",
+      "lastLogin": "2026-06-10T02:56:32.323Z",
+      "loginCount": 2
+    },
+    {
+      "avatar": null,
+      "id": "user-1781067943020-xehj3peuu",
+      "name": "Faridah Odhiambo",
+      "email": "faridah@plenser.com",
+      "role": "engineer",
+      "teamId": null,
+      "status": "active",
+      "password": "Faridah2026",
+      "createdAt": "2026-06-10T05:05:43.020Z",
+      "lastLogin": null,
+      "loginCount": 0
+    },
+    {
+      "avatar": null,
+      "id": "user-1781072738439-bynp8ocnv",
+      "name": "Harun Kamau",
+      "email": "harun@plenser.com",
+      "role": "engineer",
+      "teamId": "team-1781067986662-wqydf8tir",
+      "status": "active",
+      "password": "Haruntechnical",
+      "createdAt": "2026-06-10T06:25:38.439Z",
+      "lastLogin": null,
+      "loginCount": 0
+    },
+    {
+      "avatar": null,
+      "id": "user-1781072767852-1upwvvgyl",
+      "name": "Dedan Kiragu",
+      "email": "kiragu@plenser.com",
+      "role": "engineer",
+      "teamId": "team-1781068066805-18cyd24e6",
+      "status": "active",
+      "password": "Plenser2026",
+      "createdAt": "2026-06-10T06:26:07.852Z",
+      "lastLogin": null,
+      "loginCount": 0
+    },
+    {
+      "avatar": null,
+      "id": "user-1781072819236-eaojl1tzr",
+      "name": "Wycliffe Amisi",
+      "email": "amisiw@plenser.com",
+      "role": "engineer",
+      "teamId": "team-1781068066805-18cyd24e6",
+      "status": "active",
+      "password": "Plenser07",
+      "createdAt": "2026-06-10T06:26:59.236Z",
+      "lastLogin": null,
+      "loginCount": 0
+    },
+    {
+      "avatar": null,
+      "id": "user-1781073706859-jbbmfrvxj",
+      "name": "Moses Kamau",
+      "email": "mkamau@plenser.com",
+      "role": "manager",
+      "teamId": null,
+      "status": "active",
+      "password": "earnest2030",
+      "createdAt": "2026-06-10T06:41:46.860Z",
+      "lastLogin": null,
+      "loginCount": 0
+    },
+    {
+      "avatar": null,
+      "id": "user-1781073757191-kdl30t2lf",
+      "name": "Charity Mwangi",
+      "email": "charity@plenser.com",
+      "role": "engineer",
+      "teamId": null,
+      "status": "active",
+      "password": "Finance2026",
+      "createdAt": "2026-06-10T06:42:37.191Z",
+      "lastLogin": null,
+      "loginCount": 0
+    }
+  ],
+  "teams": [
+    {
+      "id": "team-1781067986662-wqydf8tir",
+      "name": "Design",
+      "description": "drawings and design",
+      "color": "#3b82f6",
+      "memberIds": [
+        "user-1781067943020-xehj3peuu",
+        "user-1781072738439-bynp8ocnv",
+        "user-1781072767852-1upwvvgyl",
+        "user-1781072819236-eaojl1tzr"
+      ],
+      "canUpdateProjectIds": [],
+      "createdAt": "2026-06-10T05:06:26.662Z"
+    },
+    {
+      "id": "team-1781068041761-narivpczv",
+      "name": "Quality assuarance",
+      "description": "Quality and Safety checks",
+      "color": "#3bf748",
+      "memberIds": [],
+      "canUpdateProjectIds": [],
+      "createdAt": "2026-06-10T05:07:21.761Z"
+    },
+    {
+      "id": "team-1781068066805-18cyd24e6",
+      "name": "Testing",
+      "description": "performance checks",
+      "color": "#f7903b",
+      "memberIds": [
+        "user-1781072767852-1upwvvgyl",
+        "user-1781072819236-eaojl1tzr"
+      ],
+      "canUpdateProjectIds": [],
+      "createdAt": "2026-06-10T05:07:46.805Z"
+    }
+  ],
+  "projects": [
+    {
+      "drawings": [],
+      "calculations": [],
+      "sitePhotos": [],
+      "inspectionReports": [],
+      "clientDocuments": [],
+      "id": "proj-1",
+      "name": "Eco-Boiler Prototype",
+      "description": "Next-generation eco-friendly boiler design with 95% efficiency target",
+      "status": "in-progress",
+      "priority": "high",
+      "progress": 65,
+      "startDate": "2024-01-15",
+      "endDate": "2024-12-31",
+      "assigneeIds": [],
+      "teamIds": [],
+      "createdBy": "admin-1",
+      "createdAt": "2026-06-10T02:56:29.601Z",
+      "updatedAt": "2026-06-10T02:56:29.601Z",
+      "comments": [],
+      "updates": [],
+      "productCategory": "Boilers"
+    },
+    {
+      "drawings": [],
+      "calculations": [],
+      "sitePhotos": [],
+      "inspectionReports": [],
+      "clientDocuments": [],
+      "id": "proj-2",
+      "name": "Smart Control System",
+      "description": "IoT-enabled boiler control and monitoring system",
+      "status": "testing",
+      "priority": "critical",
+      "progress": 80,
+      "startDate": "2024-03-01",
+      "endDate": "2024-10-15",
+      "assigneeIds": [],
+      "teamIds": [],
+      "createdBy": "admin-1",
+      "createdAt": "2026-06-10T02:56:29.601Z",
+      "updatedAt": "2026-06-10T02:56:29.601Z",
+      "comments": [],
+      "updates": [],
+      "productCategory": "Controls"
+    },
+    {
+      "drawings": [],
+      "calculations": [],
+      "sitePhotos": [],
+      "inspectionReports": [],
+      "clientDocuments": [],
+      "id": "proj-3",
+      "name": "Heat Exchanger Redesign",
+      "description": "Redesigning heat exchanger for improved thermal efficiency",
+      "status": "planning",
+      "priority": "medium",
+      "progress": 25,
+      "startDate": "2024-06-01",
+      "endDate": "2025-03-31",
+      "assigneeIds": [],
+      "teamIds": [],
+      "createdBy": "admin-1",
+      "createdAt": "2026-06-10T02:56:29.601Z",
+      "updatedAt": "2026-06-10T05:04:09.840Z",
+      "comments": [],
+      "updates": [
+        {
+          "id": "update-1781067849840-5pik7hmy4",
+          "userId": "admin-1",
+          "userName": "Admin User",
+          "text": "Status check: planning at 25%",
+          "type": "check",
+          "createdAt": "2026-06-10T05:04:09.840Z"
+        }
+      ],
+      "productCategory": "Heat Exchangers"
+    }
+  ],
+  "designChanges": [],
+  "boilerTests": [],
+  "productPerformances": [
+    {
+      "id": "perf-1",
+      "productName": "Eco-Boiler 1000",
+      "category": "Boilers",
+      "efficiency": 94.5,
+      "reliability": 92,
+      "costEffectiveness": 85,
+      "customerSatisfaction": 88,
+      "testDate": "2024-05-15",
+      "notes": "Excellent thermal performance"
+    },
+    {
+      "id": "perf-2",
+      "productName": "Smart Control V2",
+      "category": "Controls",
+      "efficiency": 96,
+      "reliability": 89,
+      "costEffectiveness": 78,
+      "customerSatisfaction": 91,
+      "testDate": "2024-04-20",
+      "notes": "Great UX, connectivity stable"
+    },
+    {
+      "id": "perf-3",
+      "productName": "Heat-X Pro",
+      "category": "Heat Exchangers",
+      "efficiency": 91,
+      "reliability": 95,
+      "costEffectiveness": 82,
+      "customerSatisfaction": 86,
+      "testDate": "2024-03-10",
+      "notes": "Very reliable, needs cost optimization"
+    },
+    {
+      "id": "perf-4",
+      "productName": "Compact Boiler 500",
+      "category": "Boilers",
+      "efficiency": 89,
+      "reliability": 87,
+      "costEffectiveness": 92,
+      "customerSatisfaction": 84,
+      "testDate": "2024-06-01",
+      "notes": "Compact design well received"
+    },
+    {
+      "id": "perf-5",
+      "productName": "Industrial Control Hub",
+      "category": "Controls",
+      "efficiency": 93,
+      "reliability": 96,
+      "costEffectiveness": 70,
+      "customerSatisfaction": 90,
+      "testDate": "2024-05-28",
+      "notes": "Premium product, high reliability"
+    }
+  ],
+  "reports": [],
+  "activityLogs": [
+    {
+      "id": "log-1781073757191-8o7big35o",
+      "userId": "admin-1",
+      "userName": "Admin User",
+      "action": "create",
+      "entityType": "user",
+      "entityId": "user-1781073757191-kdl30t2lf",
+      "details": "Created user: Charity Mwangi",
+      "timestamp": "2026-06-10T06:42:37.191Z"
+    },
+    {
+      "id": "log-1781073706860-jllgp3gob",
+      "userId": "admin-1",
+      "userName": "Admin User",
+      "action": "create",
+      "entityType": "user",
+      "entityId": "user-1781073706859-jbbmfrvxj",
+      "details": "Created user: Moses Kamau",
+      "timestamp": "2026-06-10T06:41:46.860Z"
+    },
+    {
+      "id": "log-1781072860858-eix7dmrxm",
+      "userId": "admin-1",
+      "userName": "Admin User",
+      "action": "update",
+      "entityType": "team",
+      "entityId": "team-1781068066805-18cyd24e6",
+      "details": "Updated team: Testing",
+      "timestamp": "2026-06-10T06:27:40.858Z"
+    },
+    {
+      "id": "log-1781072852693-gzq1mnk1u",
+      "userId": "admin-1",
+      "userName": "Admin User",
+      "action": "update",
+      "entityType": "team",
+      "entityId": "team-1781067986662-wqydf8tir",
+      "details": "Updated team: Design",
+      "timestamp": "2026-06-10T06:27:32.693Z"
+    },
+    {
+      "id": "log-1781072830481-z0zczpoas",
+      "userId": "admin-1",
+      "userName": "Admin User",
+      "action": "update",
+      "entityType": "user",
+      "entityId": "user-1781072767852-1upwvvgyl",
+      "details": "Updated user: Dedan Kiragu",
+      "timestamp": "2026-06-10T06:27:10.481Z"
+    },
+    {
+      "id": "log-1781072819236-8b27te55g",
+      "userId": "admin-1",
+      "userName": "Admin User",
+      "action": "create",
+      "entityType": "user",
+      "entityId": "user-1781072819236-eaojl1tzr",
+      "details": "Created user: Wycliffe Amisi",
+      "timestamp": "2026-06-10T06:26:59.236Z"
+    },
+    {
+      "id": "log-1781072767852-h5ruoiylm",
+      "userId": "admin-1",
+      "userName": "Admin User",
+      "action": "create",
+      "entityType": "user",
+      "entityId": "user-1781072767852-1upwvvgyl",
+      "details": "Created user: Dedan Kiragu",
+      "timestamp": "2026-06-10T06:26:07.852Z"
+    },
+    {
+      "id": "log-1781072738439-bcbfjodxr",
+      "userId": "admin-1",
+      "userName": "Admin User",
+      "action": "create",
+      "entityType": "user",
+      "entityId": "user-1781072738439-bynp8ocnv",
+      "details": "Created user: Harun Kamau",
+      "timestamp": "2026-06-10T06:25:38.439Z"
+    },
+    {
+      "id": "log-1781068066806-3zwq9xmah",
+      "userId": "admin-1",
+      "userName": "Admin User",
+      "action": "create",
+      "entityType": "team",
+      "entityId": "team-1781068066805-18cyd24e6",
+      "details": "Created team: Testing",
+      "timestamp": "2026-06-10T05:07:46.806Z"
+    },
+    {
+      "id": "log-1781068041762-9u28ngphp",
+      "userId": "admin-1",
+      "userName": "Admin User",
+      "action": "create",
+      "entityType": "team",
+      "entityId": "team-1781068041761-narivpczv",
+      "details": "Created team: Quality assuarance",
+      "timestamp": "2026-06-10T05:07:21.762Z"
+    },
+    {
+      "id": "log-1781067986662-uvzybyr6g",
+      "userId": "admin-1",
+      "userName": "Admin User",
+      "action": "create",
+      "entityType": "team",
+      "entityId": "team-1781067986662-wqydf8tir",
+      "details": "Created team: Design",
+      "timestamp": "2026-06-10T05:06:26.662Z"
+    },
+    {
+      "id": "log-1781067943020-ej7ywinm8",
+      "userId": "admin-1",
+      "userName": "Admin User",
+      "action": "create",
+      "entityType": "user",
+      "entityId": "user-1781067943020-xehj3peuu",
+      "details": "Created user: Faridah Odhiambo",
+      "timestamp": "2026-06-10T05:05:43.020Z"
+    },
+    {
+      "id": "log-1781067849840-asyy7iau5",
+      "userId": "admin-1",
+      "userName": "Admin User",
+      "action": "check",
+      "entityType": "project",
+      "entityId": "proj-3",
+      "details": "Checked status: Heat Exchanger Redesign",
+      "timestamp": "2026-06-10T05:04:09.840Z"
+    },
+    {
+      "id": "log-1781060192323-n51ad9hxr",
+      "userId": "admin-1",
+      "userName": "Admin User",
+      "action": "login",
+      "entityType": "user",
+      "entityId": "admin-1",
+      "details": "User logged in",
+      "timestamp": "2026-06-10T02:56:32.323Z"
+    }
+  ],
+  "currentUser": null,
+  "siteReports": [],
+  "designFiles": [],
+  "fabricationJobs": [],
+  "airPollutionProjects": [],
+  "heatRecoveryProjects": [],
+  "inventions": [],
+  "whatsappGroups": [],
+  "notifications": [],
+  "projectBudgets": []
+};
+
+// ===================== ENHANCED PLENSER MODULES =====================
+const ROLE_OPTIONS = [
+  ['admin', 'Admin'],
+  ['engineer', 'Engineer'],
+  ['manager', 'Manager'],
+  ['sales-engineer', 'Sales Engineer'],
+  ['operations-manager', 'Operations Manager'],
+  ['workshop-supervisor', 'Workshop Supervisor'],
+  ['design-engineer', 'Design Engineer'],
+  ['technicians', 'Technicians'],
+  ['finance', 'Finance'],
+  ['viewer', 'Viewer'],
+  ['technician', 'Technician'],
+  ['site-supervisor', 'Site Supervisor'],
+  ['fabrication-engineer', 'Fabrication Engineer'],
+  ['air-pollution-engineer', 'Air Pollution Engineer'],
+  ['heat-recovery-engineer', 'Heat Recovery Engineer'],
+  ['rd-manager', 'R&D Manager']
+];
+
+const ENHANCED_COLLECTION_DEFAULTS = {
+  siteReports: [],
+  designFiles: [],
+  fabricationJobs: [],
+  airPollutionProjects: [],
+  heatRecoveryProjects: [],
+  inventions: [],
+  whatsappGroups: [],
+  notifications: [],
+  projectBudgets: []
+};
+
+const PLENSER_PRODUCT_LINES = [
+  {
+    name: 'Boilers and Industrial Heating Systems',
+    summary: 'End-to-end industrial thermal systems for process steam, facility heating, production temperature control, reliability, efficiency, safety, and lifecycle support.',
+    offerings: ['Fire-tube boilers', 'Water-tube boilers', 'Thermal oil heaters', 'Steam distribution systems', 'Design, installation and turnkey projects', 'Preventive and predictive maintenance', 'Emergency response', 'Efficiency optimization and retrofits', 'Compliance and safety certification']
+  },
+  {
+    name: 'Waste Incineration and Air Pollution Control Technologies',
+    summary: 'Thermal treatment and emissions-control systems for biomedical, hazardous, biosafety, and municipal waste streams, designed around compliance and durability.',
+    offerings: ['Biomedical and hazardous waste incineration', 'Animal and human cremator technologies', 'Heat recovery waste-to-energy solutions', 'Air pollution control integration']
+  },
+  {
+    name: 'Stainless and Mild Steel Fabrication and Process Equipment',
+    summary: 'Precision-engineered stainless and mild steel fabrication with process equipment support for industrial operations and custom manufacturing projects.',
+    offerings: ['Steel fabrication', 'Process equipment', 'Custom manufacturing', 'Installation support', 'Maintenance support']
+  },
+  {
+    name: 'Solar Supported Engineering Systems',
+    summary: 'Solar-supported engineering systems aligned with Plenser’s sustainability and industrial efficiency capability area.',
+    offerings: ['Solar-supported engineering', 'Industrial energy support', 'Sustainability-focused systems']
+  }
+];
+
+function ensureEnhancedData(data) {
+  const merged = { ...data };
+  Object.entries(ENHANCED_COLLECTION_DEFAULTS).forEach(([key, value]) => {
+    if (!Array.isArray(merged[key])) merged[key] = value;
+  });
+  if (Array.isArray(merged.projects)) {
+    merged.projects = merged.projects.map(project => ({
+      drawings: [],
+      calculations: [],
+      sitePhotos: [],
+      inspectionReports: [],
+      clientDocuments: [],
+      ...project
+    }));
+  }
+  if (Array.isArray(merged.users)) {
+    merged.users = merged.users.map(user => ({ avatar: null, ...user }));
+  }
+  return merged;
+}
+
+function roleLabel(role) {
+  const match = ROLE_OPTIONS.find(([value]) => value === role);
+  return match ? match[1] : String(role || '').replace(/-/g, ' ');
+}
+
+function roleOptions(selected = '') {
+  return ROLE_OPTIONS.map(([value, label]) => `<option value="${value}" ${selected === value ? 'selected' : ''}>${label}</option>`).join('');
+}
+
+function escapeHtml(value) {
+  return String(value ?? '').replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[ch]));
+}
+
+function projectName(projectId) {
+  const project = getData().projects.find(p => p.id === projectId);
+  return project ? project.name : 'Unassigned';
+}
+
+function formatBytes(bytes = 0) {
+  if (!bytes) return '0 KB';
+  const units = ['B', 'KB', 'MB', 'GB'];
+  const index = Math.min(Math.floor(Math.log(bytes) / Math.log(1024)), units.length - 1);
+  return `${(bytes / Math.pow(1024, index)).toFixed(index ? 1 : 0)} ${units[index]}`;
+}
+
+function renderUserAvatar(user, classes = 'h-10 w-10') {
+  const safeName = escapeHtml(user?.name || 'User');
+  if (user?.avatar?.dataUrl) {
+    return `<img src="${user.avatar.dataUrl}" alt="${safeName}" class="${classes} rounded-full object-cover border border-slate-200 bg-white shrink-0">`;
+  }
+  return `<div class="${classes} rounded-full bg-blue-600 flex items-center justify-center text-white font-bold shrink-0">${safeName.charAt(0) || 'U'}</div>`;
+}
+
+async function readUserPhotoInput(inputId = 'userPhoto') {
+  const input = document.getElementById(inputId);
+  const file = input?.files?.[0];
+  if (!file) return null;
+  const extension = (file.name.split('.').pop() || '').toLowerCase();
+  if (!['jpg', 'jpeg', 'png', 'webp'].includes(extension)) {
+    showToast('User image must be JPG, PNG, or WEBP', 'error');
+    return false;
+  }
+  return new Promise(resolve => {
+    const reader = new FileReader();
+    reader.onload = () => resolve({
+      id: generateId('avatar'),
+      name: file.name,
+      type: file.type || 'image/*',
+      extension,
+      size: file.size,
+      dataUrl: reader.result,
+      uploadedAt: new Date().toISOString()
+    });
+    reader.readAsDataURL(file);
+  });
+}
+
+function projectOptions(selected = '') {
+  const data = getData();
+  return data.projects.map(project => `<option value="${project.id}" ${selected === project.id ? 'selected' : ''}>${escapeHtml(project.name)}</option>`).join('');
+}
+
+function readSelectedFiles(inputId, allowedExtensions) {
+  const input = document.getElementById(inputId);
+  const files = Array.from(input?.files || []);
+  const allowed = allowedExtensions.map(ext => ext.toLowerCase());
+  const invalid = files.filter(file => !allowed.includes((file.name.split('.').pop() || '').toLowerCase()));
+  if (invalid.length) {
+    showToast(`Unsupported file: ${invalid[0].name}`, 'error');
+    return Promise.resolve(null);
+  }
+  return Promise.all(files.map(file => new Promise(resolve => {
+    const reader = new FileReader();
+    reader.onload = () => resolve({
+      id: generateId('file'),
+      name: file.name,
+      type: file.type || 'application/octet-stream',
+      extension: (file.name.split('.').pop() || '').toLowerCase(),
+      size: file.size,
+      dataUrl: reader.result,
+      uploadedAt: new Date().toISOString()
+    });
+    reader.readAsDataURL(file);
+  })));
+}
+
+function downloadStoredFile(fileId) {
+  const data = getData();
+  const pools = [
+    ...data.designFiles,
+    ...(data.projectBudgets || []).flatMap(budget => budget.files || []),
+    ...data.siteReports.flatMap(report => [...(report.photos || []), ...(report.pdfs || [])]),
+    ...data.inventions.flatMap(item => [...(item.documents || []), ...(item.photos || []), ...(item.drawings || [])])
+  ];
+  const file = pools.find(item => item.id === fileId);
+  if (!file?.dataUrl) return showToast('File is not available for download', 'error');
+  const a = document.createElement('a');
+  a.href = file.dataUrl;
+  a.download = file.name;
+  a.click();
+}
+
+function renderPageHeader(title, subtitle, icon = 'fa-layer-group') {
+  return `
+    <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <div>
+        <h1 class="text-3xl font-bold text-slate-900 flex items-center gap-3"><i class="fa-solid ${icon} text-blue-600"></i>${title}</h1>
+        <p class="text-slate-500 mt-1">${subtitle}</p>
+      </div>
+    </div>
+  `;
+}
+
+function renderEmptyState(text) {
+  return `<div class="rounded-lg border border-dashed border-slate-200 bg-slate-50 p-6 text-sm text-slate-500">${text}</div>`;
+}
+
+function renderDesignFileUpload(title, category, description) {
+  const data = getData();
+  const files = data.designFiles.filter(file => category === 'all' || file.category === category);
+  const allowed = 'DWG, DXF, PDF, JPG, PNG, WEBP';
+  return `
+    <div class="space-y-6">
+      ${renderPageHeader(title, description, 'fa-file-arrow-up')}
+      <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+        <h2 class="text-lg font-semibold text-slate-900 mb-4">Upload Project File</h2>
+        <div class="grid gap-4 md:grid-cols-2">
+          <div>
+            <label class="block text-sm font-medium text-slate-700 mb-1">Project</label>
+            <select id="designFileProject" class="w-full px-3 py-2 border border-slate-200 rounded-lg">${projectOptions()}</select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-slate-700 mb-1">Repository Folder</label>
+            <select id="designFileCategory" class="w-full px-3 py-2 border border-slate-200 rounded-lg">
+              ${['drawings', 'calculations', 'sitePhotos', 'inspectionReports', 'clientDocuments'].map(item => `<option value="${item}" ${category === item ? 'selected' : ''}>${escapeHtml(item.replace(/([A-Z])/g, ' $1'))}</option>`).join('')}
+            </select>
+          </div>
+          <div class="md:col-span-2">
+            <label class="block text-sm font-medium text-slate-700 mb-1">Files (${allowed})</label>
+            <input type="file" id="designFileInput" multiple accept=".dwg,.dxf,.pdf,.jpg,.jpeg,.png,.webp" class="w-full px-3 py-2 border border-slate-200 rounded-lg">
+          </div>
+          <div class="md:col-span-2">
+            <label class="block text-sm font-medium text-slate-700 mb-1">Notes</label>
+            <textarea id="designFileNotes" rows="2" class="w-full px-3 py-2 border border-slate-200 rounded-lg" placeholder="Approval notes, revision, or client reference"></textarea>
+          </div>
+        </div>
+        <button onclick="saveDesignFiles()" class="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700"><i class="fa-solid fa-upload mr-2"></i>Save Upload</button>
+      </div>
+      <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+        <h2 class="text-lg font-semibold text-slate-900 mb-4">Project Document Repository</h2>
+        ${files.length === 0 ? renderEmptyState('No files uploaded yet.') : `
+          <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+              <thead><tr class="text-left text-slate-500 border-b"><th class="py-2">File</th><th>Project</th><th>Folder</th><th>Size</th><th>Uploaded</th><th></th></tr></thead>
+              <tbody>${files.map(file => `
+                <tr class="border-b border-slate-100">
+                  <td class="py-3 font-medium text-slate-900">${escapeHtml(file.name)}</td>
+                  <td>${escapeHtml(projectName(file.projectId))}</td>
+                  <td class="capitalize">${escapeHtml(file.category.replace(/([A-Z])/g, ' $1'))}</td>
+                  <td>${formatBytes(file.size)}</td>
+                  <td>${new Date(file.uploadedAt).toLocaleDateString()}</td>
+                  <td class="text-right"><button onclick="downloadStoredFile('${file.id}')" class="text-blue-600 hover:text-blue-800">Download</button></td>
+                </tr>
+              `).join('')}</tbody>
+            </table>
+          </div>
+        `}
+      </div>
+    </div>
+  `;
+}
+
+function renderProjectBudgets() {
+  const data = getData();
+  const budgets = data.projectBudgets || [];
+  const total = budgets.reduce((sum, budget) => sum + Number(budget.amount || 0), 0);
+  return `
+    <div class="space-y-6">
+      ${renderPageHeader('Project Budgets', 'Upload budget files and tie every budget record to a specified project.', 'fa-money-check-dollar')}
+      <div class="grid gap-4 md:grid-cols-3">
+        <div class="bg-white rounded-xl border border-slate-200 p-5"><p class="text-xs text-slate-400">Budget Records</p><p class="text-2xl font-bold">${budgets.length}</p></div>
+        <div class="bg-white rounded-xl border border-slate-200 p-5"><p class="text-xs text-slate-400">Total Budget</p><p class="text-2xl font-bold">${total.toLocaleString()}</p></div>
+        <div class="bg-white rounded-xl border border-slate-200 p-5"><p class="text-xs text-slate-400">Files Uploaded</p><p class="text-2xl font-bold">${budgets.reduce((sum, budget) => sum + (budget.files || []).length, 0)}</p></div>
+      </div>
+      <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+        <h2 class="text-lg font-semibold text-slate-900 mb-4">Upload Budget</h2>
+        <div class="grid gap-4 md:grid-cols-3">
+          <div><label class="block text-sm font-medium text-slate-700 mb-1">Project</label><select id="budgetProject" class="w-full px-3 py-2 border border-slate-200 rounded-lg">${projectOptions()}</select></div>
+          <div><label class="block text-sm font-medium text-slate-700 mb-1">Budget Type</label><select id="budgetType" class="w-full px-3 py-2 border border-slate-200 rounded-lg"><option>Estimate</option><option>Approved Budget</option><option>Revision</option><option>Variation</option><option>Final Cost</option></select></div>
+          <div><label class="block text-sm font-medium text-slate-700 mb-1">Amount</label><input id="budgetAmount" type="number" step="0.01" class="w-full px-3 py-2 border border-slate-200 rounded-lg" placeholder="0.00"></div>
+          <div><label class="block text-sm font-medium text-slate-700 mb-1">Currency</label><input id="budgetCurrency" class="w-full px-3 py-2 border border-slate-200 rounded-lg" value="KES"></div>
+          <div class="md:col-span-2"><label class="block text-sm font-medium text-slate-700 mb-1">Budget Files</label><input id="budgetFiles" type="file" multiple accept=".pdf,.xlsx,.xls,.csv,.jpg,.jpeg,.png,.webp" class="w-full px-3 py-2 border border-slate-200 rounded-lg"></div>
+          <div class="md:col-span-3"><label class="block text-sm font-medium text-slate-700 mb-1">Notes</label><textarea id="budgetNotes" rows="2" class="w-full px-3 py-2 border border-slate-200 rounded-lg" placeholder="Scope, revision reason, approval status, or cost notes"></textarea></div>
+        </div>
+        <button onclick="saveProjectBudget()" class="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700"><i class="fa-solid fa-upload mr-2"></i>Save Budget</button>
+      </div>
+      <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+        <h2 class="text-lg font-semibold text-slate-900 mb-4">Uploaded Budgets</h2>
+        ${budgets.length === 0 ? renderEmptyState('No project budgets uploaded yet.') : budgets.map(budget => `
+          <div class="border border-slate-100 rounded-lg p-4 mb-3">
+            <div class="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+              <div>
+                <p class="font-semibold text-slate-900">${escapeHtml(projectName(budget.projectId))}</p>
+                <p class="text-sm text-slate-500">${escapeHtml(budget.type)} - ${escapeHtml(budget.currency)} ${Number(budget.amount || 0).toLocaleString()}</p>
+                <p class="text-sm text-slate-500">${escapeHtml(budget.notes)}</p>
+              </div>
+              <span class="text-xs text-slate-400">${new Date(budget.createdAt).toLocaleDateString()}</span>
+            </div>
+            <div class="mt-3 flex flex-wrap gap-2">
+              ${(budget.files || []).map(file => `<button onclick="downloadStoredFile('${file.id}')" class="text-xs px-3 py-1.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50"><i class="fa-solid fa-download mr-1"></i>${escapeHtml(file.name)} (${formatBytes(file.size)})</button>`).join('')}
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `;
+}
+
+async function saveProjectBudget() {
+  const files = await readSelectedFiles('budgetFiles', ['pdf', 'xlsx', 'xls', 'csv', 'jpg', 'jpeg', 'png', 'webp']);
+  if (!files || files.length === 0) return showToast('Choose at least one budget file', 'error');
+  const data = getData();
+  const budget = {
+    id: generateId('budget'),
+    projectId: document.getElementById('budgetProject').value,
+    type: document.getElementById('budgetType').value,
+    amount: Number(document.getElementById('budgetAmount').value || 0),
+    currency: document.getElementById('budgetCurrency').value || 'KES',
+    notes: document.getElementById('budgetNotes').value,
+    files,
+    createdBy: data.currentUser.id,
+    createdAt: new Date().toISOString()
+  };
+  saveData({ projectBudgets: [budget, ...(data.projectBudgets || [])] });
+  logActivity(data.currentUser.id, data.currentUser.name, 'upload', 'project-budget', budget.projectId, `Uploaded budget for ${projectName(budget.projectId)}`);
+  showToast('Project budget uploaded', 'success');
+  render();
+}
+
+function renderProductLineSummary() {
+  return `
+    <div class="space-y-6">
+      ${renderPageHeader('Product Line Summary', 'Product-line analysis based on Plenser Limited public solution pages.', 'fa-boxes-stacked')}
+      <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+        <p class="text-sm text-slate-500">Plenser’s public positioning centers on customized engineering solutions across industrial efficiency, sustainability, compliance, fabrication, heating, waste treatment, and long-term support. Use this summary to classify projects, budgets, site work, fabrication jobs, and analytics by product line.</p>
+      </div>
+      <div class="grid gap-4 lg:grid-cols-2">
+        ${PLENSER_PRODUCT_LINES.map(line => `
+          <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+            <h2 class="text-lg font-semibold text-slate-900">${escapeHtml(line.name)}</h2>
+            <p class="text-sm text-slate-500 mt-2">${escapeHtml(line.summary)}</p>
+            <div class="mt-4 flex flex-wrap gap-2">
+              ${line.offerings.map(item => `<span class="text-xs px-2.5 py-1 rounded-full bg-blue-50 text-blue-700">${escapeHtml(item)}</span>`).join('')}
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `;
+}
+
+async function saveDesignFiles() {
+  const files = await readSelectedFiles('designFileInput', ['dwg', 'dxf', 'pdf', 'jpg', 'jpeg', 'png', 'webp']);
+  if (!files || files.length === 0) return showToast('Choose at least one file', 'error');
+  const data = getData();
+  const projectId = document.getElementById('designFileProject').value;
+  const category = document.getElementById('designFileCategory').value;
+  const notes = document.getElementById('designFileNotes').value;
+  const records = files.map(file => ({ ...file, projectId, category, notes, uploadedBy: data.currentUser.id }));
+  saveData({ designFiles: [...data.designFiles, ...records] });
+  logActivity(data.currentUser.id, data.currentUser.name, 'upload', 'design-file', projectId, `Uploaded ${records.length} project document(s)`);
+  showToast('Files uploaded', 'success');
+  render();
+}
+
+function renderSiteModule(title, reportType, subtitle) {
+  const data = getData();
+  const reports = data.siteReports.filter(report => reportType === 'all' || report.reportType === reportType);
+  return `
+    <div class="space-y-6">
+      ${renderPageHeader(title, subtitle, 'fa-helmet-safety')}
+      <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+        <h2 class="text-lg font-semibold text-slate-900 mb-4">New Site Record</h2>
+        <div class="grid gap-4 md:grid-cols-3">
+          <div><label class="block text-sm font-medium text-slate-700 mb-1">Project</label><select id="siteProject" class="w-full px-3 py-2 border border-slate-200 rounded-lg">${projectOptions()}</select></div>
+          <div><label class="block text-sm font-medium text-slate-700 mb-1">Record Type</label><select id="siteType" class="w-full px-3 py-2 border border-slate-200 rounded-lg">
+            ${['daily', 'progress', 'material', 'safety', 'labour', 'client-visit', 'inspection'].map(item => `<option value="${item}" ${item === reportType ? 'selected' : ''}>${escapeHtml(item.replace(/-/g, ' '))}</option>`).join('')}
+          </select></div>
+          <div><label class="block text-sm font-medium text-slate-700 mb-1">Site Status</label><select id="siteStatus" class="w-full px-3 py-2 border border-slate-200 rounded-lg"><option>On Track</option><option>Delayed</option><option>Blocked</option><option>Completed</option></select></div>
+          <div><label class="block text-sm font-medium text-slate-700 mb-1">GPS Location</label><input id="siteGps" class="w-full px-3 py-2 border border-slate-200 rounded-lg" placeholder="-1.2921, 36.8219"></div>
+          <div><label class="block text-sm font-medium text-slate-700 mb-1">Photos</label><input id="sitePhotos" type="file" multiple accept=".jpg,.jpeg,.png,.webp" class="w-full px-3 py-2 border border-slate-200 rounded-lg"></div>
+          <div><label class="block text-sm font-medium text-slate-700 mb-1">PDFs</label><input id="sitePdfs" type="file" multiple accept=".pdf" class="w-full px-3 py-2 border border-slate-200 rounded-lg"></div>
+          <div class="md:col-span-3"><label class="block text-sm font-medium text-slate-700 mb-1">Report Details</label><textarea id="siteDetails" rows="3" class="w-full px-3 py-2 border border-slate-200 rounded-lg" placeholder="Progress, materials, labour attendance, safety incidents, client visits, inspection notes"></textarea></div>
+        </div>
+        <button onclick="saveSiteReport()" class="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700"><i class="fa-solid fa-floppy-disk mr-2"></i>Save Site Record</button>
+      </div>
+      <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+        <h2 class="text-lg font-semibold text-slate-900 mb-4">Site Records</h2>
+        ${reports.length === 0 ? renderEmptyState('No site records yet.') : reports.map(report => `
+          <div class="border border-slate-100 rounded-lg p-4 mb-3">
+            <div class="flex items-start justify-between gap-3">
+              <div><p class="font-semibold text-slate-900 capitalize">${escapeHtml(report.reportType.replace(/-/g, ' '))} - ${escapeHtml(projectName(report.projectId))}</p><p class="text-sm text-slate-500">${escapeHtml(report.details)}</p></div>
+              <span class="text-xs px-2 py-1 rounded-full bg-blue-50 text-blue-700">${escapeHtml(report.status)}</span>
+            </div>
+            <div class="mt-3 grid grid-cols-2 md:grid-cols-4 gap-2 text-xs text-slate-500">
+              <span><i class="fa-solid fa-location-dot mr-1"></i>${escapeHtml(report.gps || 'No GPS')}</span>
+              <span>${(report.photos || []).length} photos</span>
+              <span>${(report.pdfs || []).length} PDFs</span>
+              <span>${new Date(report.createdAt).toLocaleString()}</span>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `;
+}
+
+async function saveSiteReport() {
+  const photos = await readSelectedFiles('sitePhotos', ['jpg', 'jpeg', 'png', 'webp']);
+  if (photos === null) return;
+  const pdfs = await readSelectedFiles('sitePdfs', ['pdf']);
+  if (pdfs === null) return;
+  const data = getData();
+  const report = {
+    id: generateId('site'),
+    projectId: document.getElementById('siteProject').value,
+    reportType: document.getElementById('siteType').value,
+    status: document.getElementById('siteStatus').value,
+    gps: document.getElementById('siteGps').value,
+    details: document.getElementById('siteDetails').value,
+    photos: photos || [],
+    pdfs: pdfs || [],
+    createdBy: data.currentUser.id,
+    createdAt: new Date().toISOString()
+  };
+  saveData({ siteReports: [report, ...data.siteReports] });
+  logActivity(data.currentUser.id, data.currentUser.name, 'create', 'site-report', report.id, `Created ${report.reportType} site record`);
+  showToast('Site record saved', 'success');
+  render();
+}
+
+function renderFabrication() {
+  const data = getData();
+  const jobs = data.fabricationJobs;
+  return `
+    <div class="space-y-6">
+      ${renderPageHeader('Fabrication', 'Track fabrication jobs, welding reports, quality checks, progress, certificates, materials, labour hours, and costs.', 'fa-industry')}
+      <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+        <h2 class="text-lg font-semibold text-slate-900 mb-4">New Fabrication Job</h2>
+        <div class="grid gap-4 md:grid-cols-3">
+          <input id="fabName" class="px-3 py-2 border border-slate-200 rounded-lg" placeholder="Job name">
+          <select id="fabProject" class="px-3 py-2 border border-slate-200 rounded-lg">${projectOptions()}</select>
+          <select id="fabStatus" class="px-3 py-2 border border-slate-200 rounded-lg"><option>Planned</option><option>In Production</option><option>Quality Check</option><option>Completed</option></select>
+          <input id="fabMaterials" class="px-3 py-2 border border-slate-200 rounded-lg" placeholder="Material requirements">
+          <input id="fabLabour" type="number" class="px-3 py-2 border border-slate-200 rounded-lg" placeholder="Labour hours">
+          <input id="fabCost" type="number" class="px-3 py-2 border border-slate-200 rounded-lg" placeholder="Cost">
+          <textarea id="fabNotes" rows="3" class="md:col-span-3 px-3 py-2 border border-slate-200 rounded-lg" placeholder="Welding reports, quality checks, certificate notes"></textarea>
+        </div>
+        <button onclick="saveFabricationJob()" class="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700">Save Job</button>
+      </div>
+      <div class="grid gap-4 md:grid-cols-4">
+        <div class="bg-white rounded-xl border border-slate-200 p-5"><p class="text-xs text-slate-400">Jobs</p><p class="text-2xl font-bold">${jobs.length}</p></div>
+        <div class="bg-white rounded-xl border border-slate-200 p-5"><p class="text-xs text-slate-400">Completed</p><p class="text-2xl font-bold">${jobs.filter(j => j.status === 'Completed').length}</p></div>
+        <div class="bg-white rounded-xl border border-slate-200 p-5"><p class="text-xs text-slate-400">Labour Hours</p><p class="text-2xl font-bold">${jobs.reduce((sum, job) => sum + Number(job.labourHours || 0), 0)}</p></div>
+        <div class="bg-white rounded-xl border border-slate-200 p-5"><p class="text-xs text-slate-400">Tracked Cost</p><p class="text-2xl font-bold">${jobs.reduce((sum, job) => sum + Number(job.cost || 0), 0).toLocaleString()}</p></div>
+      </div>
+      ${jobs.length === 0 ? renderEmptyState('No fabrication jobs yet.') : jobs.map(job => `<div class="bg-white rounded-xl border border-slate-200 p-5"><div class="flex justify-between"><h3 class="font-semibold">${escapeHtml(job.name)}</h3><span class="text-xs px-2 py-1 bg-slate-100 rounded-full">${escapeHtml(job.status)}</span></div><p class="text-sm text-slate-500 mt-1">${escapeHtml(job.notes)}</p><p class="text-xs text-slate-400 mt-3">${escapeHtml(projectName(job.projectId))} - ${escapeHtml(job.materials)}</p></div>`).join('')}
+    </div>
+  `;
+}
+
+function saveFabricationJob() {
+  const data = getData();
+  const job = { id: generateId('fab'), name: document.getElementById('fabName').value || 'Fabrication Job', projectId: document.getElementById('fabProject').value, status: document.getElementById('fabStatus').value, materials: document.getElementById('fabMaterials').value, labourHours: Number(document.getElementById('fabLabour').value || 0), cost: Number(document.getElementById('fabCost').value || 0), notes: document.getElementById('fabNotes').value, createdAt: new Date().toISOString() };
+  saveData({ fabricationJobs: [job, ...data.fabricationJobs] });
+  logActivity(data.currentUser.id, data.currentUser.name, 'create', 'fabrication-job', job.id, `Created fabrication job: ${job.name}`);
+  showToast('Fabrication job saved', 'success');
+  render();
+}
+
+function renderAirPollutionSystems() {
+  return renderIndustrialKpiModule('Air Pollution Systems', 'airPollutionProjects', 'saveAirPollutionProject', 'fa-wind', ['Cyclone', 'Bag Filter', 'Wet Scrubber', 'Multi Cyclone', 'Dust Collector', 'Stack System'], ['Pressure Drop', 'Collection Efficiency', 'Fan Performance', 'Emission Levels']);
+}
+
+function renderHeatRecoverySystems() {
+  return renderIndustrialKpiModule('Heat Recovery Systems', 'heatRecoveryProjects', 'saveHeatRecoveryProject', 'fa-temperature-arrow-up', ['Economizer', 'Recuperator', 'Heat Exchanger', 'Waste Heat Boiler'], ['Heat Recovered', 'Fuel Savings', 'Efficiency Improvement', 'CO2 Reduction']);
+}
+
+function renderIndustrialKpiModule(title, collection, saveFn, icon, categories, metrics) {
+  const data = getData();
+  const records = data[collection] || [];
+  return `
+    <div class="space-y-6">
+      ${renderPageHeader(title, `Track ${categories.join(', ')} with operating KPIs and project status.`, icon)}
+      <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+        <div class="grid gap-4 md:grid-cols-4">
+          <input id="kpiName" class="px-3 py-2 border border-slate-200 rounded-lg" placeholder="Project name">
+          <select id="kpiCategory" class="px-3 py-2 border border-slate-200 rounded-lg">${categories.map(c => `<option>${c}</option>`).join('')}</select>
+          <select id="kpiProject" class="px-3 py-2 border border-slate-200 rounded-lg">${projectOptions()}</select>
+          <select id="kpiStatus" class="px-3 py-2 border border-slate-200 rounded-lg"><option>Design</option><option>Fabrication</option><option>Installed</option><option>Commissioned</option></select>
+          ${metrics.map((metric, index) => `<input id="kpiMetric${index}" type="number" step="0.01" class="px-3 py-2 border border-slate-200 rounded-lg" placeholder="${metric}">`).join('')}
+          <textarea id="kpiNotes" rows="2" class="md:col-span-4 px-3 py-2 border border-slate-200 rounded-lg" placeholder="Performance notes"></textarea>
+        </div>
+        <button onclick="${saveFn}()" class="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700">Save Record</button>
+      </div>
+      <div class="grid gap-4 md:grid-cols-4">${metrics.map((metric, index) => `<div class="bg-white rounded-xl border border-slate-200 p-5"><p class="text-xs text-slate-400">${metric}</p><p class="text-2xl font-bold">${records.length ? Math.round(records.reduce((sum, item) => sum + Number(item.metrics?.[index] || 0), 0) / records.length) : 0}</p></div>`).join('')}</div>
+      ${records.length === 0 ? renderEmptyState('No records yet.') : records.map(record => `<div class="bg-white rounded-xl border border-slate-200 p-5"><div class="flex justify-between"><h3 class="font-semibold">${escapeHtml(record.name)}</h3><span class="text-xs px-2 py-1 bg-blue-50 text-blue-700 rounded-full">${escapeHtml(record.category)}</span></div><p class="text-sm text-slate-500 mt-1">${escapeHtml(record.notes)}</p><p class="text-xs text-slate-400 mt-3">${escapeHtml(record.status)} - ${escapeHtml(projectName(record.projectId))}</p></div>`).join('')}
+    </div>
+  `;
+}
+
+function saveIndustrialKpi(collection, entityType) {
+  const data = getData();
+  const record = { id: generateId(entityType), name: document.getElementById('kpiName').value || 'Untitled Project', category: document.getElementById('kpiCategory').value, projectId: document.getElementById('kpiProject').value, status: document.getElementById('kpiStatus').value, metrics: [0,1,2,3].map(i => Number(document.getElementById(`kpiMetric${i}`).value || 0)), notes: document.getElementById('kpiNotes').value, createdAt: new Date().toISOString() };
+  saveData({ [collection]: [record, ...(data[collection] || [])] });
+  logActivity(data.currentUser.id, data.currentUser.name, 'create', entityType, record.id, `Created ${record.category}: ${record.name}`);
+  showToast('Record saved', 'success');
+  render();
+}
+
+function saveAirPollutionProject() { saveIndustrialKpi('airPollutionProjects', 'air-pollution-project'); }
+function saveHeatRecoveryProject() { saveIndustrialKpi('heatRecoveryProjects', 'heat-recovery-project'); }
+
+function renderInventions() {
+  const data = getData();
+  const items = data.inventions;
+  const success = items.length ? Math.round((items.filter(i => i.prototypeStatus === 'Successful').length / items.length) * 100) : 0;
+  return `
+    <div class="space-y-6">
+      ${renderPageHeader('New Inventions', 'Capture invention details, patent pipeline, prototype status, investment, revenue potential, documents, photos, and drawings.', 'fa-lightbulb')}
+      <div class="grid gap-4 md:grid-cols-5">
+        <div class="bg-white rounded-xl border border-slate-200 p-5"><p class="text-xs text-slate-400">Inventions</p><p class="text-2xl font-bold">${items.length}</p></div>
+        <div class="bg-white rounded-xl border border-slate-200 p-5"><p class="text-xs text-slate-400">Prototype Success</p><p class="text-2xl font-bold">${success}%</p></div>
+        <div class="bg-white rounded-xl border border-slate-200 p-5"><p class="text-xs text-slate-400">Patent Pipeline</p><p class="text-2xl font-bold">${items.filter(i => i.patentStatus !== 'Not Started').length}</p></div>
+        <div class="bg-white rounded-xl border border-slate-200 p-5"><p class="text-xs text-slate-400">Investment</p><p class="text-2xl font-bold">${items.reduce((s, i) => s + Number(i.investmentCost || 0), 0).toLocaleString()}</p></div>
+        <div class="bg-white rounded-xl border border-slate-200 p-5"><p class="text-xs text-slate-400">Revenue Potential</p><p class="text-2xl font-bold">${items.reduce((s, i) => s + Number(i.revenuePotential || 0), 0).toLocaleString()}</p></div>
+      </div>
+      <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+        <h2 class="text-lg font-semibold text-slate-900 mb-4">New Invention</h2>
+        <div class="grid gap-4 md:grid-cols-3">
+          <input id="invTitle" class="px-3 py-2 border border-slate-200 rounded-lg" placeholder="Title">
+          <input id="invInventor" class="px-3 py-2 border border-slate-200 rounded-lg" placeholder="Inventor">
+          <input id="invCategory" class="px-3 py-2 border border-slate-200 rounded-lg" placeholder="Category">
+          <select id="invStatus" class="px-3 py-2 border border-slate-200 rounded-lg"><option>Idea</option><option>Research</option><option>Prototype</option><option>Commercialization</option></select>
+          <select id="invPatent" class="px-3 py-2 border border-slate-200 rounded-lg"><option>Not Started</option><option>Drafting</option><option>Filed</option><option>Granted</option></select>
+          <select id="invPrototype" class="px-3 py-2 border border-slate-200 rounded-lg"><option>Not Started</option><option>In Progress</option><option>Testing</option><option>Successful</option></select>
+          <input id="invInvestment" type="number" class="px-3 py-2 border border-slate-200 rounded-lg" placeholder="Investment cost">
+          <input id="invRevenue" type="number" class="px-3 py-2 border border-slate-200 rounded-lg" placeholder="Revenue potential">
+          <input id="invFiles" type="file" multiple accept=".dwg,.dxf,.pdf,.jpg,.jpeg,.png,.webp" class="px-3 py-2 border border-slate-200 rounded-lg">
+          <textarea id="invDescription" rows="3" class="md:col-span-3 px-3 py-2 border border-slate-200 rounded-lg" placeholder="Description"></textarea>
+        </div>
+        <button onclick="saveInvention()" class="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700">Save Invention</button>
+      </div>
+      ${items.length === 0 ? renderEmptyState('No inventions yet.') : items.map(item => `<div class="bg-white rounded-xl border border-slate-200 p-5"><div class="flex justify-between gap-3"><div><h3 class="font-semibold">${escapeHtml(item.title)}</h3><p class="text-sm text-slate-500">${escapeHtml(item.description)}</p></div><span class="text-xs px-2 py-1 bg-amber-50 text-amber-700 rounded-full h-fit">${escapeHtml(item.status)}</span></div><div class="grid grid-cols-2 md:grid-cols-4 gap-2 mt-3 text-xs text-slate-500"><span>Inventor: ${escapeHtml(item.inventor)}</span><span>Patent: ${escapeHtml(item.patentStatus)}</span><span>Prototype: ${escapeHtml(item.prototypeStatus)}</span><span>Files: ${(item.documents || []).length + (item.photos || []).length + (item.drawings || []).length}</span></div></div>`).join('')}
+    </div>
+  `;
+}
+
+async function saveInvention() {
+  const files = await readSelectedFiles('invFiles', ['dwg', 'dxf', 'pdf', 'jpg', 'jpeg', 'png', 'webp']);
+  if (files === null) return;
+  const drawings = (files || []).filter(file => ['dwg', 'dxf'].includes(file.extension));
+  const photos = (files || []).filter(file => ['jpg', 'jpeg', 'png', 'webp'].includes(file.extension));
+  const documents = (files || []).filter(file => file.extension === 'pdf');
+  const data = getData();
+  const item = { id: generateId('inv'), title: document.getElementById('invTitle').value || 'Untitled Invention', description: document.getElementById('invDescription').value, inventor: document.getElementById('invInventor').value, category: document.getElementById('invCategory').value, status: document.getElementById('invStatus').value, patentStatus: document.getElementById('invPatent').value, prototypeStatus: document.getElementById('invPrototype').value, investmentCost: Number(document.getElementById('invInvestment').value || 0), revenuePotential: Number(document.getElementById('invRevenue').value || 0), documents, photos, drawings, createdAt: new Date().toISOString() };
+  saveData({ inventions: [item, ...data.inventions] });
+  logActivity(data.currentUser.id, data.currentUser.name, 'create', 'invention', item.id, `Created invention: ${item.title}`);
+  showToast('Invention saved', 'success');
+  render();
+}
+
+function renderAnalytics(kind) {
+  const data = getData();
+  const configs = {
+    project: ['Project Analytics', data.projects.length, `${data.projects.length ? Math.round(data.projects.reduce((s, p) => s + Number(p.progress || 0), 0) / data.projects.length) : 0}%`, 'Average progress', 'fa-chart-line'],
+    invention: ['Invention Analytics', data.inventions.length, `${data.inventions.reduce((s, i) => s + Number(i.revenuePotential || 0), 0).toLocaleString()}`, 'Revenue potential', 'fa-lightbulb'],
+    fabrication: ['Fabrication Analytics', data.fabricationJobs.length, `${data.fabricationJobs.reduce((s, j) => s + Number(j.labourHours || 0), 0)}`, 'Labour hours', 'fa-industry'],
+    site: ['Site Analytics', data.siteReports.length, data.siteReports.filter(r => r.status === 'On Track').length, 'On-track sites', 'fa-helmet-safety']
+  };
+  const [title, total, metric, label, icon] = configs[kind];
+  return `
+    <div class="space-y-6">
+      ${renderPageHeader(title, 'Operational analytics from the records stored in this app.', icon)}
+      <div class="grid gap-4 md:grid-cols-3">
+        <div class="bg-white rounded-xl border border-slate-200 p-6"><p class="text-sm text-slate-500">Total Records</p><p class="text-3xl font-bold mt-2">${total}</p></div>
+        <div class="bg-white rounded-xl border border-slate-200 p-6"><p class="text-sm text-slate-500">${label}</p><p class="text-3xl font-bold mt-2">${metric}</p></div>
+        <div class="bg-white rounded-xl border border-slate-200 p-6"><p class="text-sm text-slate-500">Activity Logs</p><p class="text-3xl font-bold mt-2">${data.activityLogs.length}</p></div>
+      </div>
+      <div class="bg-white rounded-xl border border-slate-200 p-6">
+        <h2 class="text-lg font-semibold mb-3">Analytics Notes</h2>
+        <p class="text-sm text-slate-500">These summaries calculate from local app records. For multi-user reporting, large drawings, and automated dashboards, this screen is ready to connect to Supabase, Firebase, or a cloud storage backend later.</p>
+      </div>
+    </div>
+  `;
+}
+
+function renderWhatsAppNotifications() {
+  const data = getData();
+  return `
+    <div class="space-y-6">
+      ${renderPageHeader('WhatsApp Notifications', 'Launch immediate WhatsApp messages from the browser and maintain recipient groups for future Business Platform integration.', 'fa-brands fa-whatsapp')}
+      <div class="grid gap-6 lg:grid-cols-2">
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+          <h2 class="text-lg font-semibold text-slate-900 mb-4">Immediate Message</h2>
+          <div class="space-y-3">
+            <input id="waNumber" class="w-full px-3 py-2 border border-slate-200 rounded-lg" placeholder="Phone number with country code, e.g. 2547...">
+            <select id="waAudience" class="w-full px-3 py-2 border border-slate-200 rounded-lg"><option>Project Team</option><option>Selected Users</option><option>Client Group</option><option>Plenser Management</option></select>
+            <textarea id="waMessage" rows="4" class="w-full px-3 py-2 border border-slate-200 rounded-lg" placeholder="Project update, site alert, fabrication completion, or drawing approval message"></textarea>
+            <button onclick="sendWhatsAppMessage()" class="px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700"><i class="fa-brands fa-whatsapp mr-2"></i>Open WhatsApp</button>
+          </div>
+        </div>
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+          <h2 class="text-lg font-semibold text-slate-900 mb-4">Notification Groups</h2>
+          <div class="grid gap-3 md:grid-cols-2">
+            <input id="waGroupName" class="px-3 py-2 border border-slate-200 rounded-lg" placeholder="Group name">
+            <input id="waGroupPhone" class="px-3 py-2 border border-slate-200 rounded-lg" placeholder="Primary phone/link">
+            <textarea id="waGroupNotes" rows="2" class="md:col-span-2 px-3 py-2 border border-slate-200 rounded-lg" placeholder="Users, client contacts, or management recipients"></textarea>
+          </div>
+          <button onclick="saveWhatsappGroup()" class="mt-3 px-4 py-2 border border-slate-200 rounded-lg text-sm font-medium hover:bg-slate-50">Save Group</button>
+          <div class="mt-5 space-y-2">${data.whatsappGroups.length === 0 ? renderEmptyState('No WhatsApp groups saved yet.') : data.whatsappGroups.map(group => `<div class="border border-slate-100 rounded-lg p-3"><p class="font-medium">${escapeHtml(group.name)}</p><p class="text-sm text-slate-500">${escapeHtml(group.phone)} - ${escapeHtml(group.notes)}</p></div>`).join('')}</div>
+        </div>
+      </div>
+      <div class="bg-white rounded-xl border border-slate-200 p-6">
+        <h2 class="text-lg font-semibold mb-2">Recommended Next Level</h2>
+        <p class="text-sm text-slate-500">The app now supports browser WhatsApp deep links immediately. Bulk notifications, automated alerts, and approval workflows should be connected through the WhatsApp Business Platform when a backend is added.</p>
+      </div>
+    </div>
+  `;
+}
+
+function sendWhatsAppMessage() {
+  const data = getData();
+  const phone = document.getElementById('waNumber').value.replace(/[^\d]/g, '');
+  const message = document.getElementById('waMessage').value;
+  const audience = document.getElementById('waAudience').value;
+  if (!phone || !message) return showToast('Add a phone number and message', 'error');
+  const notification = { id: generateId('note'), channel: 'whatsapp', audience, phone, message, createdAt: new Date().toISOString(), createdBy: data.currentUser.id };
+  saveData({ notifications: [notification, ...data.notifications] });
+  logActivity(data.currentUser.id, data.currentUser.name, 'notify', 'whatsapp', notification.id, `Opened WhatsApp notification for ${audience}`);
+  window.open(`https://wa.me/${phone}?text=${encodeURIComponent(message)}`, '_blank');
+  showToast('WhatsApp opened', 'success');
+}
+
+function saveWhatsappGroup() {
+  const data = getData();
+  const group = { id: generateId('wa'), name: document.getElementById('waGroupName').value || 'WhatsApp Group', phone: document.getElementById('waGroupPhone').value, notes: document.getElementById('waGroupNotes').value, createdAt: new Date().toISOString() };
+  saveData({ whatsappGroups: [group, ...data.whatsappGroups] });
+  logActivity(data.currentUser.id, data.currentUser.name, 'create', 'whatsapp-group', group.id, `Saved WhatsApp group: ${group.name}`);
+  showToast('Group saved', 'success');
+  render();
+}
+
+function renderDesignEngineering() { return renderDesignFileUpload('Design Engineering', 'drawings', 'Upload and organize DWG, DXF, PDF, JPG, PNG, and WEBP project drawings.'); }
+function renderDocumentDesignDrawings() { return renderDesignFileUpload('Design Drawings', 'drawings', 'Project drawing repository.'); }
+function renderDocumentPdfs() { return renderDesignFileUpload('PDFs', 'all', 'PDFs and mixed project documents.'); }
+function renderTechnicalDocuments() { return renderDesignFileUpload('Technical Documents', 'clientDocuments', 'Client documents, calculations, and technical files.'); }
+function renderProjectPhotos() { return renderDesignFileUpload('Project Photos', 'sitePhotos', 'Project photo repository.'); }
+function renderDailyReports() { return renderSiteModule('Daily Reports', 'daily', 'Daily progress, materials, labour, photos, PDFs, GPS, and status tracking.'); }
+function renderSiteReports() { return renderSiteModule('Site Reports', 'all', 'All site records including progress, materials, safety, labour, client visits, and inspections.'); }
+function renderSitePhotos() { return renderSiteModule('Site Photos', 'all', 'Photo-driven site records with project and GPS context.'); }
+function renderSafetyReports() { return renderSiteModule('Safety Reports', 'safety', 'Safety incidents, observations, photos, PDFs, and follow-up status.'); }
+function renderProjectAnalytics() { return renderAnalytics('project'); }
+function renderInventionAnalytics() { return renderAnalytics('invention'); }
+function renderFabricationAnalytics() { return renderAnalytics('fabrication'); }
+function renderSiteAnalytics() { return renderAnalytics('site'); }
+
+
+function getData() {
+  const stored = localStorage.getItem(STORAGE_KEY);
+  if (stored) {
+    const data = ensureEnhancedData(JSON.parse(stored));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    return data;
+  }
+  const data = ensureEnhancedData(defaultData);
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  return data;
+}
+
+function saveData(partial) {
+  const current = getData();
+  const updated = { ...current, ...partial };
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+  return updated;
+}
+
+function logActivity(userId, userName, action, entityType, entityId, details) {
+  const data = getData();
+  const log = { id: `log-${Date.now()}-${Math.random().toString(36).substr(2,9)}`, userId, userName, action, entityType, entityId, details, timestamp: new Date().toISOString() };
+  data.activityLogs.unshift(log);
+  if (data.activityLogs.length > 500) data.activityLogs = data.activityLogs.slice(0, 500);
+  saveData({ activityLogs: data.activityLogs });
+}
+
+function generateId(prefix) { return `${prefix}-${Date.now()}-${Math.random().toString(36).substr(2,9)}`; }
+
+// ===================== STATE =====================
+let state = {
+  currentUser: null,
+  page: 'login',
+  sidebarCollapsed: false,
+  toast: null
+};
+
+function setState(newState) {
+  state = { ...state, ...newState };
+  render();
+}
+
+function showToast(message, type = 'info') {
+  const toast = document.createElement('div');
+  toast.className = `toast fixed top-4 right-4 z-50 px-4 py-3 rounded-lg shadow-lg text-white text-sm font-medium ${type === 'error' ? 'bg-red-500' : type === 'success' ? 'bg-green-500' : 'bg-blue-500'}`;
+  toast.textContent = message;
+  document.body.appendChild(toast);
+  setTimeout(() => toast.remove(), 3000);
+}
+
+// ===================== ROUTING =====================
+const routes = {
+  login: renderLogin,
+  dashboard: renderDashboard,
+  projects: renderProjects,
+  teams: renderTeams,
+  boilerTests: renderBoilerTests,
+  performance: renderPerformance,
+  designChanges: renderDesignChanges,
+  designEngineering: renderDesignEngineering,
+  fabrication: renderFabrication,
+  airPollutionSystems: renderAirPollutionSystems,
+  heatRecoverySystems: renderHeatRecoverySystems,
+  inventions: renderInventions,
+  siteReports: renderSiteReports,
+  dailyReports: renderDailyReports,
+  sitePhotos: renderSitePhotos,
+  safetyReports: renderSafetyReports,
+  documentDesignDrawings: renderDocumentDesignDrawings,
+  documentPdfs: renderDocumentPdfs,
+  technicalDocuments: renderTechnicalDocuments,
+  projectPhotos: renderProjectPhotos,
+  projectBudgets: renderProjectBudgets,
+  productLineSummary: renderProductLineSummary,
+  projectAnalytics: renderProjectAnalytics,
+  inventionAnalytics: renderInventionAnalytics,
+  fabricationAnalytics: renderFabricationAnalytics,
+  siteAnalytics: renderSiteAnalytics,
+  whatsappNotifications: renderWhatsAppNotifications,
+  reports: renderReports,
+  activity: renderActivity,
+  settings: renderSettings
+};
+
+function navigate(page) {
+  setState({ page });
+}
+
+// ===================== RENDER =====================
+function render() {
+  const app = document.getElementById('app');
+  if (!app) return;
+
+  if (state.page === 'login') {
+    app.innerHTML = renderLogin();
+    attachLoginListeners();
+    return;
+  }
+
+  const data = getData();
+  if (!data.currentUser) {
+    setState({ page: 'login' });
+    return;
+  }
+
+  app.innerHTML = `
+    <div class="flex h-screen">
+      ${renderSidebar()}
+      <main class="flex-1 overflow-y-auto bg-slate-50">
+        <div class="p-6 max-w-7xl mx-auto">
+          ${routes[state.page] ? routes[state.page]() : renderDashboard()}
+        </div>
+      </main>
+    </div>
+  `;
+  attachSidebarListeners();
+  attachPageListeners();
+}
+
+// ===================== LOGIN =====================
+function renderLogin() {
+  return `
+    <div class="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
+      <div class="w-full max-w-md bg-white rounded-xl shadow-lg p-8">
+        <div class="text-center mb-6">
+          <div class="mx-auto h-20 w-72 rounded-lg bg-white flex items-center justify-center mb-4 border border-slate-100 overflow-hidden">
+            <img src="plenser-logo.png" alt="Plenser" class="max-h-full max-w-full object-contain">
+          </div>
+          <h1 class="text-2xl font-bold text-slate-900">Plenser R&D</h1>
+          <p class="text-sm text-slate-500 mt-1">Innovation & Performance Tracker</p>
+        </div>
+        <form id="loginForm" class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-slate-700 mb-1">Email</label>
+            <input type="email" id="loginEmail" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="you@plenser.com" value="admin@plenser.com" required>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-slate-700 mb-1">Password</label>
+            <div class="relative">
+              <input type="password" id="loginPassword" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Enter password" value="admin123" required>
+              <button type="button" id="togglePassword" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+                <i class="fa-solid fa-eye"></i>
+              </button>
+            </div>
+          </div>
+          <div id="loginError" class="text-sm text-red-500 hidden"></div>
+          <button type="submit" class="w-full bg-blue-600 text-white py-2.5 rounded-lg font-medium hover:bg-blue-700 transition-colors">
+            Sign In
+          </button>
+        </form>
+        <p class="text-center text-xs text-slate-400 mt-4">Default: admin@plenser.com / admin123</p>
+      </div>
+    </div>
+  `;
+}
+
+function attachLoginListeners() {
+  const form = document.getElementById('loginForm');
+  if (!form) return;
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const email = document.getElementById('loginEmail').value;
+    const password = document.getElementById('loginPassword').value;
+    const data = getData();
+    const user = data.users.find(u => u.email === email && u.password === password && u.status === 'active');
+    if (!user) {
+      document.getElementById('loginError').textContent = 'Invalid credentials or account inactive';
+      document.getElementById('loginError').classList.remove('hidden');
+      return;
+    }
+    const updatedUser = { ...user, lastLogin: new Date().toISOString(), loginCount: user.loginCount + 1 };
+    const updatedUsers = data.users.map(u => u.id === user.id ? updatedUser : u);
+    saveData({ currentUser: updatedUser, users: updatedUsers });
+    logActivity(user.id, user.name, 'login', 'user', user.id, 'User logged in');
+    setState({ page: 'dashboard', currentUser: updatedUser });
+  });
+
+  document.getElementById('togglePassword')?.addEventListener('click', () => {
+    const input = document.getElementById('loginPassword');
+    input.type = input.type === 'password' ? 'text' : 'password';
+  });
+}
+
+// ===================== SIDEBAR =====================
+function renderSidebar() {
+  const data = getData();
+  const user = data.currentUser;
+  const navGroups = [
+    { items: [
+      { name: 'Dashboard', page: 'dashboard', icon: 'fa-chart-line' },
+      { name: 'Projects', page: 'projects', icon: 'fa-folder-open' },
+      { name: 'Project Budgets', page: 'projectBudgets', icon: 'fa-money-check-dollar' },
+      { name: 'Teams & Users', page: 'teams', icon: 'fa-users' },
+    ]},
+    { label: 'Engineering', items: [
+      { name: 'Design Engineering', page: 'designEngineering', icon: 'fa-compass-drafting' },
+      { name: 'Fabrication', page: 'fabrication', icon: 'fa-industry' },
+      { name: 'Air Pollution Systems', page: 'airPollutionSystems', icon: 'fa-wind' },
+      { name: 'Heat Recovery Systems', page: 'heatRecoverySystems', icon: 'fa-temperature-arrow-up' },
+      { name: 'New Inventions', page: 'inventions', icon: 'fa-lightbulb' },
+      { name: 'Boiler Tests', page: 'boilerTests', icon: 'fa-fire' },
+      { name: 'Performance', page: 'performance', icon: 'fa-chart-pie' },
+      { name: 'Design Changes', page: 'designChanges', icon: 'fa-pen-ruler' },
+    ]},
+    { label: 'Site Management', items: [
+      { name: 'Site Reports', page: 'siteReports', icon: 'fa-helmet-safety' },
+      { name: 'Daily Reports', page: 'dailyReports', icon: 'fa-calendar-day' },
+      { name: 'Site Photos', page: 'sitePhotos', icon: 'fa-images' },
+      { name: 'Safety Reports', page: 'safetyReports', icon: 'fa-shield-halved' },
+    ]},
+    { label: 'Document Center', items: [
+      { name: 'Design Drawings', page: 'documentDesignDrawings', icon: 'fa-file-pen' },
+      { name: 'PDFs', page: 'documentPdfs', icon: 'fa-file-pdf' },
+      { name: 'Technical Documents', page: 'technicalDocuments', icon: 'fa-file-lines' },
+      { name: 'Project Photos', page: 'projectPhotos', icon: 'fa-image' },
+      { name: 'Budgets', page: 'projectBudgets', icon: 'fa-money-check-dollar' },
+    ]},
+    { label: 'Analytics', items: [
+      { name: 'Product Line Summary', page: 'productLineSummary', icon: 'fa-boxes-stacked' },
+      { name: 'Project Analytics', page: 'projectAnalytics', icon: 'fa-chart-simple' },
+      { name: 'Invention Analytics', page: 'inventionAnalytics', icon: 'fa-chart-line' },
+      { name: 'Fabrication Analytics', page: 'fabricationAnalytics', icon: 'fa-chart-column' },
+      { name: 'Site Analytics', page: 'siteAnalytics', icon: 'fa-chart-area' },
+    ]},
+    { items: [
+      { name: 'WhatsApp Notifications', page: 'whatsappNotifications', icon: 'fa-brands fa-whatsapp' },
+      { name: 'Reports', page: 'reports', icon: 'fa-file-lines' },
+      { name: 'Activity', page: 'activity', icon: 'fa-clock-rotate-left' },
+      { name: 'Settings', page: 'settings', icon: 'fa-gear' },
+    ]}
+  ];
+
+  const renderItem = (item) => `
+    <button data-page="${item.page}" title="${item.name}" class="nav-item w-full flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${state.page === item.page ? 'bg-blue-600 text-white' : 'text-slate-500 hover:bg-slate-100 hover:text-slate-900'} ${state.sidebarCollapsed ? 'justify-center px-2' : ''}">
+      <i class="fa-solid ${item.icon}"></i>
+      ${!state.sidebarCollapsed ? `<span class="truncate">${item.name}</span>` : ''}
+    </button>
+  `;
+
+  return `
+    <aside class="sidebar fixed left-0 top-0 z-40 h-screen bg-white border-r border-slate-200 flex flex-col ${state.sidebarCollapsed ? 'w-16' : 'w-72'}">
+      <div class="flex h-16 items-center justify-between border-b border-slate-200 px-4">
+        ${!state.sidebarCollapsed ? `
+          <div class="flex items-center gap-2 min-w-0">
+            <img src="plenser-logo.png" alt="Plenser" class="h-9 w-36 object-contain object-left">
+          </div>
+        ` : '<div class="w-8"></div>'}
+        <button id="toggleSidebar" class="p-1.5 rounded-lg hover:bg-slate-100 text-slate-500">
+          <i class="fa-solid ${state.sidebarCollapsed ? 'fa-chevron-right' : 'fa-xmark'}"></i>
+        </button>
+      </div>
+      <nav class="flex-1 space-y-4 px-2 py-4 overflow-y-auto">
+        ${navGroups.map(group => `
+          <div class="space-y-1">
+            ${group.label && !state.sidebarCollapsed ? `<p class="px-3 pt-2 text-[11px] font-semibold uppercase tracking-wide text-slate-400">${group.label}</p>` : ''}
+            ${group.items.map(renderItem).join('')}
+          </div>
+        `).join('')}
+      </nav>
+      <div class="border-t border-slate-200 p-4">
+        <div class="flex items-center gap-3">
+          ${renderUserAvatar(user, 'h-8 w-8 text-xs')}
+          ${!state.sidebarCollapsed ? `
+            <div class="flex-1 min-w-0">
+              <p class="text-sm font-medium truncate">${user?.name}</p>
+              <p class="text-xs text-slate-400 capitalize">${roleLabel(user?.role)}</p>
+            </div>
+          ` : ''}
+          <button id="logoutBtn" class="p-1.5 rounded-lg hover:bg-slate-100 text-slate-500 shrink-0">
+            <i class="fa-solid fa-right-from-bracket"></i>
+          </button>
+        </div>
+      </div>
+    </aside>
+    ${state.sidebarCollapsed ? '' : '<div class="w-72 shrink-0"></div>'}
+  `;
+}
+
+function attachSidebarListeners() {
+  document.getElementById('toggleSidebar')?.addEventListener('click', () => {
+    setState({ sidebarCollapsed: !state.sidebarCollapsed });
+  });
+  document.querySelectorAll('.nav-item').forEach(btn => {
+    btn.addEventListener('click', () => {
+      navigate(btn.dataset.page);
+    });
+  });
+  document.getElementById('logoutBtn')?.addEventListener('click', () => {
+    const data = getData();
+    if (data.currentUser) {
+      logActivity(data.currentUser.id, data.currentUser.name, 'logout', 'user', data.currentUser.id, 'User logged out');
+    }
+    saveData({ currentUser: null });
+    setState({ page: 'login', currentUser: null });
+  });
+}
+
+// ===================== DASHBOARD =====================
+function renderDashboard() {
+  const data = getData();
+  const projects = data.projects;
+  const users = data.users;
+  const logs = data.activityLogs.slice(0, 10);
+
+  const stats = {
+    total: projects.length,
+    active: projects.filter(p => p.status === 'in-progress').length,
+    completed: projects.filter(p => p.status === 'completed').length,
+    users: users.filter(u => u.status === 'active').length,
+    avgProgress: projects.length > 0 ? Math.round(projects.reduce((a, b) => a + b.progress, 0) / projects.length) : 0,
+    highPriority: projects.filter(p => p.priority === 'critical' || p.priority === 'high').length
+  };
+
+  const statusColors = { planning: 'bg-yellow-500', 'in-progress': 'bg-blue-500', testing: 'bg-purple-500', completed: 'bg-green-500', 'on-hold': 'bg-gray-500' };
+
+  // Gantt chart
+  const dates = projects.flatMap(p => [new Date(p.startDate), new Date(p.endDate)]);
+  const minDate = new Date(Math.min(...dates.map(d => d.getTime())));
+  const maxDate = new Date(Math.max(...dates.map(d => d.getTime())));
+  minDate.setDate(minDate.getDate() - 7);
+  maxDate.setDate(maxDate.getDate() + 7);
+  const totalDays = (maxDate - minDate) / (1000 * 60 * 60 * 24);
+  const today = new Date();
+  const todayPct = today >= minDate && today <= maxDate ? ((today - minDate) / (maxDate - minDate)) * 100 : null;
+
+  function getPos(p) {
+    const start = new Date(p.startDate);
+    const end = new Date(p.endDate);
+    const startPct = ((start - minDate) / (maxDate - minDate)) * 100;
+    const widthPct = ((end - start) / (maxDate - minDate)) * 100;
+    return { startPct, widthPct };
+  }
+
+  return `
+    <div class="space-y-6">
+      <div>
+        <h1 class="text-3xl font-bold text-slate-900">Dashboard</h1>
+        <p class="text-slate-500">Overview of your R&D projects and team activity</p>
+      </div>
+
+      <!-- Stats -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="bg-white rounded-xl p-6 border border-slate-200 shadow-sm">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-sm font-medium text-slate-500">Total Projects</span>
+            <i class="fa-solid fa-folder-open text-slate-400"></i>
+          </div>
+          <div class="text-2xl font-bold text-slate-900">${stats.total}</div>
+          <p class="text-xs text-slate-400 mt-1">${stats.active} active</p>
+        </div>
+        <div class="bg-white rounded-xl p-6 border border-slate-200 shadow-sm">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-sm font-medium text-slate-500">Avg Progress</span>
+            <i class="fa-solid fa-chart-line text-slate-400"></i>
+          </div>
+          <div class="text-2xl font-bold text-slate-900">${stats.avgProgress}%</div>
+          <div class="w-full bg-slate-100 rounded-full h-2 mt-2">
+            <div class="bg-blue-600 h-2 rounded-full transition-all" style="width: ${stats.avgProgress}%"></div>
+          </div>
+        </div>
+        <div class="bg-white rounded-xl p-6 border border-slate-200 shadow-sm">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-sm font-medium text-slate-500">Team Members</span>
+            <i class="fa-solid fa-users text-slate-400"></i>
+          </div>
+          <div class="text-2xl font-bold text-slate-900">${stats.users}</div>
+          <p class="text-xs text-slate-400 mt-1">Active users</p>
+        </div>
+        <div class="bg-white rounded-xl p-6 border border-slate-200 shadow-sm">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-sm font-medium text-slate-500">High Priority</span>
+            <i class="fa-solid fa-triangle-exclamation text-red-500"></i>
+          </div>
+          <div class="text-2xl font-bold text-slate-900">${stats.highPriority}</div>
+          <p class="text-xs text-slate-400 mt-1">Critical/High tasks</p>
+        </div>
+      </div>
+
+      <!-- Gantt -->
+      <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+        <h2 class="text-lg font-semibold text-slate-900 mb-4">Project Timeline (Gantt)</h2>
+        <div class="overflow-x-auto">
+          <div class="min-w-[800px]">
+            <div class="relative h-8 border-b border-slate-200 mb-2">
+              ${renderMonthHeaders(minDate, maxDate)}
+            </div>
+            ${todayPct !== null ? `<div class="relative h-0"><div class="absolute top-0 bottom-0 w-px bg-red-500 z-10" style="left: ${todayPct}%"><span class="absolute -top-1 -left-6 text-[10px] text-red-500 font-bold">Today</span></div></div>` : ''}
+            <div class="space-y-2 mt-4">
+              ${projects.map(p => {
+                const pos = getPos(p);
+                return `
+                  <div class="relative h-12 flex items-center">
+                    <div class="w-48 shrink-0 pr-4">
+                      <p class="text-sm font-medium text-slate-900 truncate">${p.name}</p>
+                      <div class="flex items-center gap-1 mt-0.5">
+                        <span class="text-[10px] px-1.5 py-0.5 rounded-full ${p.priority === 'critical' ? 'bg-red-100 text-red-700' : p.priority === 'high' ? 'bg-orange-100 text-orange-700' : p.priority === 'medium' ? 'bg-yellow-100 text-yellow-700' : 'bg-green-100 text-green-700'}">${p.priority}</span>
+                        <span class="text-[10px] text-slate-400">${p.progress}%</span>
+                      </div>
+                    </div>
+                    <div class="flex-1 relative h-8 bg-slate-100 rounded-md overflow-hidden">
+                      <div class="absolute top-1 bottom-1 rounded-md ${statusColors[p.status] || 'bg-blue-500'} opacity-80" style="left: ${pos.startPct}%; width: ${pos.widthPct}%; min-width: 4px;">
+                        <div class="h-full flex items-center px-2">
+                          <span class="text-[10px] text-white font-medium truncate">${p.name}</span>
+                        </div>
+                      </div>
+                      <div class="absolute top-1 bottom-1 bg-white/30 rounded-l-md" style="left: ${pos.startPct}%; width: ${pos.widthPct * (p.progress / 100)}%"></div>
+                    </div>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recent Projects & Activity -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+          <h2 class="text-lg font-semibold text-slate-900 mb-4">Recent Projects</h2>
+          <div class="space-y-4">
+            ${projects.slice(0, 5).map(p => `
+              <div class="flex items-center justify-between">
+                <div class="space-y-1">
+                  <p class="text-sm font-medium text-slate-900">${p.name}</p>
+                  <div class="flex items-center gap-2">
+                    <span class="text-[10px] px-2 py-0.5 rounded-full ${p.status === 'completed' ? 'bg-green-100 text-green-700' : p.status === 'in-progress' ? 'bg-blue-100 text-blue-700' : p.status === 'testing' ? 'bg-purple-100 text-purple-700' : 'bg-yellow-100 text-yellow-700'}">${p.status}</span>
+                    <span class="text-xs text-slate-400">${p.progress}%</span>
+                  </div>
+                </div>
+                <div class="w-24 bg-slate-100 rounded-full h-2">
+                  <div class="bg-blue-600 h-2 rounded-full" style="width: ${p.progress}%"></div>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+          <h2 class="text-lg font-semibold text-slate-900 mb-4">Recent Activity</h2>
+          <div class="space-y-3 max-h-[300px] overflow-y-auto">
+            ${logs.length === 0 ? '<p class="text-sm text-slate-400">No recent activity</p>' : logs.map(l => `
+              <div class="flex items-start gap-3 text-sm">
+                <i class="fa-solid fa-clock-rotate-left text-blue-500 mt-0.5"></i>
+                <div>
+                  <p class="font-medium text-slate-900">${l.userName}</p>
+                  <p class="text-slate-500">${l.action} — ${l.details}</p>
+                  <p class="text-xs text-slate-400">${new Date(l.timestamp).toLocaleString()}</p>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function renderMonthHeaders(minDate, maxDate) {
+  let html = '';
+  let current = new Date(minDate);
+  while (current < maxDate) {
+    const monthStart = new Date(current);
+    const monthEnd = new Date(current.getFullYear(), current.getMonth() + 1, 1);
+    const end = monthEnd > maxDate ? maxDate : monthEnd;
+    const startPct = ((monthStart - minDate) / (maxDate - minDate)) * 100;
+    const widthPct = ((end - monthStart) / (maxDate - minDate)) * 100;
+    html += `<div class="absolute top-0 h-full border-r border-slate-200 text-xs font-medium text-slate-400 flex items-center px-2" style="left: ${startPct}%; width: ${widthPct}%">${monthStart.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}</div>`;
+    current = monthEnd;
+  }
+  return html;
+}
+
+
+// ===================== PROJECTS =====================
+function renderProjects() {
+  const data = getData();
+  const projects = data.projects;
+  const currentUser = data.currentUser;
+  const search = window.projectSearch || '';
+  const statusFilter = window.projectStatusFilter || 'all';
+
+  const filtered = projects.filter(p => {
+    const matchesSearch = p.name.toLowerCase().includes(search.toLowerCase()) || p.description.toLowerCase().includes(search.toLowerCase());
+    const matchesStatus = statusFilter === 'all' || p.status === statusFilter;
+    return matchesSearch && matchesStatus;
+  });
+
+  const isAdmin = currentUser?.role === 'admin';
+
+  const statusColors = {
+    planning: 'bg-yellow-100 text-yellow-700',
+    'in-progress': 'bg-blue-100 text-blue-700',
+    testing: 'bg-purple-100 text-purple-700',
+    completed: 'bg-green-100 text-green-700',
+    'on-hold': 'bg-gray-100 text-gray-700'
+  };
+  const priorityColors = {
+    low: 'bg-green-100 text-green-700',
+    medium: 'bg-yellow-100 text-yellow-700',
+    high: 'bg-orange-100 text-orange-700',
+    critical: 'bg-red-100 text-red-700'
+  };
+
+  return `
+    <div class="space-y-6">
+      <div class="flex items-center justify-between">
+        <div>
+          <h1 class="text-3xl font-bold text-slate-900">Projects</h1>
+          <p class="text-slate-500">Manage and track R&D projects</p>
+        </div>
+        <div class="flex gap-2">
+          <button onclick="exportProjectsPDF()" class="px-3 py-2 border border-slate-200 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-50">
+            <i class="fa-solid fa-file-pdf mr-2"></i>PDF
+          </button>
+          <button onclick="exportProjectsExcel()" class="px-3 py-2 border border-slate-200 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-50">
+            <i class="fa-solid fa-file-excel mr-2"></i>Excel
+          </button>
+          <button onclick="openProjectModal()" class="px-3 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700">
+            <i class="fa-solid fa-plus mr-2"></i>New Project
+          </button>
+        </div>
+      </div>
+
+      <div class="flex gap-4">
+        <div class="relative flex-1 max-w-sm">
+          <i class="fa-solid fa-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+          <input type="text" id="projectSearch" placeholder="Search projects..." value="${search}" 
+            class="w-full pl-9 pr-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            oninput="window.projectSearch = this.value; render();">
+        </div>
+        <select id="projectStatusFilter" onchange="window.projectStatusFilter = this.value; render();" 
+          class="px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <option value="all">All Statuses</option>
+          <option value="planning">Planning</option>
+          <option value="in-progress">In Progress</option>
+          <option value="testing">Testing</option>
+          <option value="completed">Completed</option>
+          <option value="on-hold">On Hold</option>
+        </select>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+        ${filtered.map(p => `
+          <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6 card-hover transition-all">
+            <div class="flex items-start justify-between mb-3">
+              <div>
+                <h3 class="text-base font-semibold text-slate-900">${p.name}</h3>
+                <p class="text-xs text-slate-400 mt-0.5">${p.productCategory}</p>
+              </div>
+              <div class="flex gap-1">
+                <button onclick="editProject('${p.id}')" class="p-1.5 rounded-lg hover:bg-slate-100 text-slate-500">
+                  <i class="fa-solid fa-pencil text-sm"></i>
+                </button>
+                <button onclick="deleteProject('${p.id}')" class="p-1.5 rounded-lg hover:bg-slate-100 text-red-500">
+                  <i class="fa-solid fa-trash text-sm"></i>
+                </button>
+              </div>
+            </div>
+            <div class="flex gap-2 mb-3 flex-wrap">
+              <span class="text-[10px] px-2 py-0.5 rounded-full font-medium ${statusColors[p.status]}">${p.status}</span>
+              <span class="text-[10px] px-2 py-0.5 rounded-full font-medium ${priorityColors[p.priority]}">${p.priority}</span>
+            </div>
+            <p class="text-sm text-slate-500 mb-3 line-clamp-2">${p.description}</p>
+            <div class="mb-3">
+              <div class="flex justify-between text-sm mb-1">
+                <span class="text-slate-500">Progress</span>
+                <span class="font-medium">${p.progress}%</span>
+              </div>
+              <div class="w-full bg-slate-100 rounded-full h-2">
+                <div class="bg-blue-600 h-2 rounded-full transition-all" style="width: ${p.progress}%"></div>
+              </div>
+            </div>
+            <div class="flex justify-between text-xs text-slate-400 mb-3">
+              <span>${p.startDate}</span>
+              <span>${p.endDate}</span>
+            </div>
+            <div class="flex gap-2">
+              <button onclick="addCheck('${p.id}')" class="flex-1 px-3 py-1.5 border border-slate-200 rounded-lg text-xs font-medium text-slate-600 hover:bg-slate-50">
+                <i class="fa-solid fa-check-circle mr-1"></i>Check
+              </button>
+              <button onclick="openCommentModal('${p.id}')" class="flex-1 px-3 py-1.5 border border-slate-200 rounded-lg text-xs font-medium text-slate-600 hover:bg-slate-50">
+                <i class="fa-solid fa-comment mr-1"></i>Comment
+              </button>
+            </div>
+            ${p.comments.length > 0 ? `
+              <div class="border-t border-slate-100 pt-2 mt-3 space-y-2 max-h-32 overflow-y-auto">
+                <p class="text-xs font-medium text-slate-400">Comments (${p.comments.length})</p>
+                ${p.comments.slice(-3).map(c => `
+                  <div class="text-xs bg-slate-50 p-2 rounded">
+                    <span class="font-medium text-slate-700">${c.userName}:</span> <span class="text-slate-500">${c.text}</span>
+                  </div>
+                `).join('')}
+              </div>
+            ` : ''}
+          </div>
+        `).join('')}
+      </div>
+    </div>
+
+    <!-- Project Modal -->
+    <div id="projectModal" class="modal-overlay fixed inset-0 z-50 bg-black/50 hidden items-center justify-center p-4">
+      <div class="modal-content bg-white rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto p-6">
+        <div class="flex items-center justify-between mb-4">
+          <h2 id="projectModalTitle" class="text-xl font-bold text-slate-900">New Project</h2>
+          <button onclick="closeProjectModal()" class="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+        <div class="space-y-4">
+          <div><label class="block text-sm font-medium text-slate-700 mb-1">Name</label><input type="text" id="projName" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"></div>
+          <div><label class="block text-sm font-medium text-slate-700 mb-1">Description</label><textarea id="projDesc" rows="3" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea></div>
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-slate-700 mb-1">Status</label>
+              <select id="projStatus" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <option value="planning">Planning</option><option value="in-progress">In Progress</option><option value="testing">Testing</option><option value="completed">Completed</option><option value="on-hold">On Hold</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-slate-700 mb-1">Priority</label>
+              <select id="projPriority" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <option value="low">Low</option><option value="medium">Medium</option><option value="high">High</option><option value="critical">Critical</option>
+              </select>
+            </div>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-slate-700 mb-1">Progress: <span id="progVal">0</span>%</label>
+            <input type="range" id="projProgress" min="0" max="100" value="0" class="w-full" oninput="document.getElementById('progVal').textContent = this.value">
+          </div>
+          <div class="grid grid-cols-2 gap-4">
+            <div><label class="block text-sm font-medium text-slate-700 mb-1">Start Date</label><input type="date" id="projStart" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"></div>
+            <div><label class="block text-sm font-medium text-slate-700 mb-1">End Date</label><input type="date" id="projEnd" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"></div>
+          </div>
+          <div><label class="block text-sm font-medium text-slate-700 mb-1">Product Category</label><input type="text" id="projCategory" placeholder="e.g. Boilers, Controls" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"></div>
+        </div>
+        <div class="flex justify-end gap-2 mt-6">
+          <button onclick="closeProjectModal()" class="px-4 py-2 border border-slate-200 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-50">Cancel</button>
+          <button onclick="saveProject()" class="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700">Save Project</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Comment Modal -->
+    <div id="commentModal" class="modal-overlay fixed inset-0 z-50 bg-black/50 hidden items-center justify-center p-4">
+      <div class="modal-content bg-white rounded-xl shadow-xl max-w-lg w-full p-6">
+        <h2 class="text-xl font-bold text-slate-900 mb-4">Add Comment</h2>
+        <textarea id="commentText" rows="4" placeholder="Enter your comment..." class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+        <div class="flex justify-end gap-2 mt-4">
+          <button onclick="closeCommentModal()" class="px-4 py-2 border border-slate-200 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-50">Cancel</button>
+          <button onclick="saveComment()" class="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700">Post Comment</button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+let editingProjectId = null;
+let commentingProjectId = null;
+
+function openProjectModal(projectId = null) {
+  editingProjectId = projectId;
+  const modal = document.getElementById('projectModal');
+  const title = document.getElementById('projectModalTitle');
+  modal.classList.remove('hidden');
+  modal.classList.add('flex');
+
+  if (projectId) {
+    const data = getData();
+    const p = data.projects.find(x => x.id === projectId);
+    title.textContent = 'Edit Project';
+    document.getElementById('projName').value = p.name;
+    document.getElementById('projDesc').value = p.description;
+    document.getElementById('projStatus').value = p.status;
+    document.getElementById('projPriority').value = p.priority;
+    document.getElementById('projProgress').value = p.progress;
+    document.getElementById('progVal').textContent = p.progress;
+    document.getElementById('projStart').value = p.startDate;
+    document.getElementById('projEnd').value = p.endDate;
+    document.getElementById('projCategory').value = p.productCategory;
+  } else {
+    title.textContent = 'New Project';
+    document.getElementById('projName').value = '';
+    document.getElementById('projDesc').value = '';
+    document.getElementById('projStatus').value = 'planning';
+    document.getElementById('projPriority').value = 'medium';
+    document.getElementById('projProgress').value = 0;
+    document.getElementById('progVal').textContent = '0';
+    document.getElementById('projStart').value = '';
+    document.getElementById('projEnd').value = '';
+    document.getElementById('projCategory').value = '';
+  }
+}
+
+function closeProjectModal() {
+  document.getElementById('projectModal').classList.add('hidden');
+  document.getElementById('projectModal').classList.remove('flex');
+  editingProjectId = null;
+}
+
+function saveProject() {
+  const data = getData();
+  const currentUser = data.currentUser;
+  const project = {
+    name: document.getElementById('projName').value,
+    description: document.getElementById('projDesc').value,
+    status: document.getElementById('projStatus').value,
+    priority: document.getElementById('projPriority').value,
+    progress: parseInt(document.getElementById('projProgress').value),
+    startDate: document.getElementById('projStart').value,
+    endDate: document.getElementById('projEnd').value,
+    productCategory: document.getElementById('projCategory').value,
+  };
+
+  if (editingProjectId) {
+    const updated = data.projects.map(p => p.id === editingProjectId ? { ...p, ...project, updatedAt: new Date().toISOString() } : p);
+    saveData({ projects: updated });
+    logActivity(currentUser.id, currentUser.name, 'update', 'project', editingProjectId, `Updated project: ${project.name}`);
+    showToast('Project updated!', 'success');
+  } else {
+    const newProject = {
+      id: generateId('proj'),
+      ...project,
+      assigneeIds: [], teamIds: [], createdBy: currentUser.id,
+      createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(),
+      comments: [], updates: []
+    };
+    saveData({ projects: [...data.projects, newProject] });
+    logActivity(currentUser.id, currentUser.name, 'create', 'project', newProject.id, `Created project: ${project.name}`);
+    showToast('Project created!', 'success');
+  }
+  closeProjectModal();
+  render();
+}
+
+function editProject(id) { openProjectModal(id); }
+
+function deleteProject(id) {
+  const data = getData();
+  const p = data.projects.find(x => x.id === id);
+  if (!confirm(`Delete "${p.name}"?`)) return;
+  const updated = data.projects.filter(x => x.id !== id);
+  saveData({ projects: updated });
+  logActivity(data.currentUser.id, data.currentUser.name, 'delete', 'project', id, `Deleted project: ${p.name}`);
+  showToast('Project deleted', 'success');
+  render();
+}
+
+function addCheck(projectId) {
+  const data = getData();
+  const p = data.projects.find(x => x.id === projectId);
+  const update = { id: generateId('update'), userId: data.currentUser.id, userName: data.currentUser.name, text: `Status check: ${p.status} at ${p.progress}%`, type: 'check', createdAt: new Date().toISOString() };
+  const updated = data.projects.map(x => x.id === projectId ? { ...x, updates: [...x.updates, update], updatedAt: new Date().toISOString() } : x);
+  saveData({ projects: updated });
+  logActivity(data.currentUser.id, data.currentUser.name, 'check', 'project', projectId, `Checked status: ${p.name}`);
+  showToast('Status check added!', 'success');
+  render();
+}
+
+function openCommentModal(projectId) {
+  commentingProjectId = projectId;
+  const modal = document.getElementById('commentModal');
+  modal.classList.remove('hidden');
+  modal.classList.add('flex');
+  document.getElementById('commentText').value = '';
+}
+
+function closeCommentModal() {
+  document.getElementById('commentModal').classList.add('hidden');
+  document.getElementById('commentModal').classList.remove('flex');
+  commentingProjectId = null;
+}
+
+function saveComment() {
+  const text = document.getElementById('commentText').value.trim();
+  if (!text || !commentingProjectId) return;
+  const data = getData();
+  const comment = { id: generateId('comment'), userId: data.currentUser.id, userName: data.currentUser.name, text, createdAt: new Date().toISOString() };
+  const updated = data.projects.map(p => p.id === commentingProjectId ? { ...p, comments: [...p.comments, comment], updatedAt: new Date().toISOString() } : p);
+  saveData({ projects: updated });
+  logActivity(data.currentUser.id, data.currentUser.name, 'comment', 'project', commentingProjectId, 'Added comment');
+  showToast('Comment posted!', 'success');
+  closeCommentModal();
+  render();
+}
+
+function exportProjectsPDF() {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+  const data = getData();
+  doc.setFontSize(18); doc.text('Projects Report', 14, 20);
+  doc.setFontSize(10); doc.text('Generated: ' + new Date().toLocaleString(), 14, 28);
+  const tableData = data.projects.map(p => [p.name, p.status, p.priority, p.progress + '%', p.startDate, p.endDate, p.productCategory]);
+  doc.autoTable({ head: [['Name', 'Status', 'Priority', 'Progress', 'Start', 'End', 'Category']], body: tableData, startY: 35, styles: { fontSize: 9 }, headStyles: { fillColor: [37, 99, 235] } });
+  doc.save('projects-report.pdf');
+  showToast('PDF exported!', 'success');
+}
+
+function exportProjectsExcel() {
+  const data = getData();
+  const exportData = data.projects.map(p => ({ Name: p.name, Description: p.description, Status: p.status, Priority: p.priority, Progress: p.progress + '%', 'Start Date': p.startDate, 'End Date': p.endDate, Category: p.productCategory }));
+  const ws = XLSX.utils.json_to_sheet(exportData);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Projects');
+  XLSX.writeFile(wb, 'projects.xlsx');
+  showToast('Excel exported!', 'success');
+}
+
+
+// ===================== TEAMS & USERS =====================
+function renderTeams() {
+  const data = getData();
+  const users = data.users;
+  const teams = data.teams;
+  const currentUser = data.currentUser;
+  const isAdmin = currentUser?.role === 'admin';
+  const activeTab = window.teamsTab || 'users';
+
+  const roleColors = { admin: 'bg-red-100 text-red-700', manager: 'bg-blue-100 text-blue-700', engineer: 'bg-green-100 text-green-700', viewer: 'bg-gray-100 text-gray-700' };
+
+  return `
+    <div class="space-y-6">
+      <div class="flex items-center justify-between">
+        <div>
+          <h1 class="text-3xl font-bold text-slate-900">Teams & Users</h1>
+          <p class="text-slate-500">Manage team members and groups</p>
+        </div>
+        ${isAdmin ? `<button onclick="exportUsersExcel()" class="px-3 py-2 border border-slate-200 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-50">
+          <i class="fa-solid fa-file-excel mr-2"></i>Export Users
+        </button>` : ''}
+      </div>
+
+      <div class="border-b border-slate-200">
+        <div class="flex gap-1">
+          <button onclick="window.teamsTab = 'users'; render();" class="px-4 py-2 text-sm font-medium ${activeTab === 'users' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-slate-500 hover:text-slate-700'}">Users</button>
+          <button onclick="window.teamsTab = 'teams'; render();" class="px-4 py-2 text-sm font-medium ${activeTab === 'teams' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-slate-500 hover:text-slate-700'}">Teams</button>
+        </div>
+      </div>
+
+      ${activeTab === 'users' ? `
+        <div class="space-y-4">
+          ${isAdmin ? `<button onclick="openUserModal()" class="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700">
+            <i class="fa-solid fa-plus mr-2"></i>Add User
+          </button>` : ''}
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            ${users.map(u => {
+              const team = teams.find(t => t.id === u.teamId);
+              return `
+                <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6 card-hover">
+                  <div class="flex items-start justify-between mb-3">
+                    <div class="flex items-center gap-3">
+                      ${renderUserAvatar(u, 'h-10 w-10')}
+                      <div>
+                        <h3 class="text-base font-semibold text-slate-900">${u.name}</h3>
+                        <p class="text-xs text-slate-400">${u.email}</p>
+                      </div>
+                    </div>
+                    ${isAdmin ? `
+                      <div class="flex gap-1">
+                        <button onclick="editUser('${u.id}')" class="p-1.5 rounded-lg hover:bg-slate-100 text-slate-500"><i class="fa-solid fa-pencil text-sm"></i></button>
+                        <button onclick="deleteUser('${u.id}')" class="p-1.5 rounded-lg hover:bg-slate-100 text-red-500"><i class="fa-solid fa-trash text-sm"></i></button>
+                      </div>
+                    ` : ''}
+                  </div>
+                  <div class="flex gap-2 mb-2 flex-wrap">
+                    <span class="text-[10px] px-2 py-0.5 rounded-full font-medium ${roleColors[u.role] || 'bg-indigo-100 text-indigo-700'}">${roleLabel(u.role)}</span>
+                    <span class="text-[10px] px-2 py-0.5 rounded-full font-medium ${u.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'}">${u.status}</span>
+                  </div>
+                  ${team ? `<p class="text-sm text-slate-500">Team: ${team.name}</p>` : ''}
+                  <p class="text-xs text-slate-400">Logins: ${u.loginCount}</p>
+                  <p class="text-xs text-slate-400">Last login: ${u.lastLogin ? new Date(u.lastLogin).toLocaleDateString() : 'Never'}</p>
+                  ${isAdmin ? `<button onclick="openPasswordModal('${u.id}')" class="w-full mt-2 px-3 py-1.5 border border-slate-200 rounded-lg text-xs font-medium text-slate-600 hover:bg-slate-50">
+                    <i class="fa-solid fa-key mr-1"></i>Change Password
+                  </button>` : ''}
+                </div>
+              `;
+            }).join('')}
+          </div>
+        </div>
+      ` : `
+        <div class="space-y-4">
+          ${isAdmin ? `<button onclick="openTeamModal()" class="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700">
+            <i class="fa-solid fa-plus mr-2"></i>Create Team
+          </button>` : ''}
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            ${teams.map(t => {
+              const members = users.filter(u => t.memberIds.includes(u.id));
+              return `
+                <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6 card-hover">
+                  <div class="flex items-start justify-between mb-3">
+                    <div class="flex items-center gap-3">
+                      <div class="h-10 w-10 rounded-lg flex items-center justify-center text-white font-bold" style="background-color: ${t.color}">${t.name.charAt(0)}</div>
+                      <div>
+                        <h3 class="text-base font-semibold text-slate-900">${t.name}</h3>
+                        <p class="text-xs text-slate-400">${members.length} members</p>
+                      </div>
+                    </div>
+                    ${isAdmin ? `
+                      <div class="flex gap-1">
+                        <button onclick="editTeam('${t.id}')" class="p-1.5 rounded-lg hover:bg-slate-100 text-slate-500"><i class="fa-solid fa-pencil text-sm"></i></button>
+                        <button onclick="deleteTeam('${t.id}')" class="p-1.5 rounded-lg hover:bg-slate-100 text-red-500"><i class="fa-solid fa-trash text-sm"></i></button>
+                      </div>
+                    ` : ''}
+                  </div>
+                  <p class="text-sm text-slate-500 mb-2">${t.description}</p>
+                  <div class="flex flex-wrap gap-1">
+                    ${members.map(m => `<span class="text-[10px] px-2 py-0.5 rounded-full border border-slate-200">${m.name}</span>`).join('')}
+                  </div>
+                </div>
+              `;
+            }).join('')}
+          </div>
+        </div>
+      `}
+
+      <!-- User Modal -->
+      <div id="userModal" class="modal-overlay fixed inset-0 z-50 bg-black/50 hidden items-center justify-center p-4">
+        <div class="modal-content bg-white rounded-xl shadow-xl max-w-lg w-full p-6">
+          <h2 id="userModalTitle" class="text-xl font-bold text-slate-900 mb-4">Add User</h2>
+          <div class="space-y-4">
+            <div><label class="block text-sm font-medium text-slate-700 mb-1">Name</label><input type="text" id="userName" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"></div>
+            <div><label class="block text-sm font-medium text-slate-700 mb-1">Email</label><input type="email" id="userEmail" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"></div>
+            <div><label class="block text-sm font-medium text-slate-700 mb-1">Password</label><input type="password" id="userPassword" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"></div>
+            <div>
+              <label class="block text-sm font-medium text-slate-700 mb-1">User Image</label>
+              <div class="flex items-center gap-3">
+                <div id="userPhotoPreview" class="h-12 w-12 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 overflow-hidden border border-slate-200">
+                  <i class="fa-solid fa-user"></i>
+                </div>
+                <input type="file" id="userPhoto" accept=".jpg,.jpeg,.png,.webp" class="flex-1 px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+              </div>
+              <p class="text-xs text-slate-400 mt-1">Supports JPG, PNG, and WEBP profile images.</p>
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm font-medium text-slate-700 mb-1">Role</label>
+                <select id="userRole" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                  ${roleOptions()}
+                </select>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-slate-700 mb-1">Team</label>
+                <select id="userTeam" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                  <option value="">None</option>
+                  ${teams.map(t => `<option value="${t.id}">${t.name}</option>`).join('')}
+                </select>
+              </div>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-slate-700 mb-1">Status</label>
+              <select id="userStatus" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <option value="active">Active</option><option value="inactive">Inactive</option><option value="pending">Pending</option>
+              </select>
+            </div>
+          </div>
+          <div class="flex justify-end gap-2 mt-6">
+            <button onclick="closeUserModal()" class="px-4 py-2 border border-slate-200 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-50">Cancel</button>
+            <button onclick="saveUser()" class="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700">Save User</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Team Modal -->
+      <div id="teamModal" class="modal-overlay fixed inset-0 z-50 bg-black/50 hidden items-center justify-center p-4">
+        <div class="modal-content bg-white rounded-xl shadow-xl max-w-lg w-full p-6">
+          <h2 id="teamModalTitle" class="text-xl font-bold text-slate-900 mb-4">Create Team</h2>
+          <div class="space-y-4">
+            <div><label class="block text-sm font-medium text-slate-700 mb-1">Name</label><input type="text" id="teamName" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"></div>
+            <div><label class="block text-sm font-medium text-slate-700 mb-1">Description</label><input type="text" id="teamDesc" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"></div>
+            <div><label class="block text-sm font-medium text-slate-700 mb-1">Color</label><input type="color" id="teamColor" value="#3b82f6" class="w-full h-10 rounded-lg"></div>
+            <div>
+              <label class="block text-sm font-medium text-slate-700 mb-1">Members</label>
+              <div class="border border-slate-200 rounded-lg p-2 space-y-1 max-h-32 overflow-y-auto">
+                ${users.map(u => `
+                  <label class="flex items-center gap-2 text-sm cursor-pointer">
+                    <input type="checkbox" id="teamMember_${u.id}" value="${u.id}" class="rounded">
+                    <span>${u.name}</span>
+                  </label>
+                `).join('')}
+              </div>
+            </div>
+          </div>
+          <div class="flex justify-end gap-2 mt-6">
+            <button onclick="closeTeamModal()" class="px-4 py-2 border border-slate-200 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-50">Cancel</button>
+            <button onclick="saveTeam()" class="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700">Save Team</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Password Modal -->
+      <div id="passwordModal" class="modal-overlay fixed inset-0 z-50 bg-black/50 hidden items-center justify-center p-4">
+        <div class="modal-content bg-white rounded-xl shadow-xl max-w-md w-full p-6">
+          <h2 class="text-xl font-bold text-slate-900 mb-4">Change Password</h2>
+          <div><label class="block text-sm font-medium text-slate-700 mb-1">New Password</label><input type="password" id="newPassword" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"></div>
+          <div class="flex justify-end gap-2 mt-4">
+            <button onclick="closePasswordModal()" class="px-4 py-2 border border-slate-200 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-50">Cancel</button>
+            <button onclick="savePassword()" class="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700">Update Password</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+let editingUserId = null;
+let editingTeamId = null;
+let passwordUserId = null;
+
+function openUserModal(userId = null) {
+  editingUserId = userId;
+  const modal = document.getElementById('userModal');
+  modal.classList.remove('hidden'); modal.classList.add('flex');
+  document.getElementById('userModalTitle').textContent = userId ? 'Edit User' : 'Add User';
+  if (userId) {
+    const data = getData();
+    const u = data.users.find(x => x.id === userId);
+    document.getElementById('userName').value = u.name;
+    document.getElementById('userEmail').value = u.email;
+    document.getElementById('userPassword').value = '';
+    document.getElementById('userRole').value = u.role;
+    document.getElementById('userTeam').value = u.teamId || '';
+    document.getElementById('userStatus').value = u.status;
+    document.getElementById('userPhotoPreview').innerHTML = u.avatar?.dataUrl ? `<img src="${u.avatar.dataUrl}" alt="${u.name}" class="h-full w-full object-cover">` : '<i class="fa-solid fa-user"></i>';
+  } else {
+    document.getElementById('userName').value = '';
+    document.getElementById('userEmail').value = '';
+    document.getElementById('userPassword').value = '';
+    document.getElementById('userRole').value = 'engineer';
+    document.getElementById('userTeam').value = '';
+    document.getElementById('userStatus').value = 'active';
+    document.getElementById('userPhotoPreview').innerHTML = '<i class="fa-solid fa-user"></i>';
+  }
+  document.getElementById('userPhoto')?.addEventListener('change', async () => {
+    const photo = await readUserPhotoInput('userPhoto');
+    if (!photo) return;
+    document.getElementById('userPhotoPreview').innerHTML = `<img src="${photo.dataUrl}" alt="Selected user image" class="h-full w-full object-cover">`;
+  });
+}
+
+function closeUserModal() { document.getElementById('userModal').classList.add('hidden'); document.getElementById('userModal').classList.remove('flex'); editingUserId = null; }
+
+async function saveUser() {
+  const data = getData();
+  const selectedPhoto = await readUserPhotoInput('userPhoto');
+  if (selectedPhoto === false) return;
+  const user = {
+    name: document.getElementById('userName').value,
+    email: document.getElementById('userEmail').value,
+    role: document.getElementById('userRole').value,
+    teamId: document.getElementById('userTeam').value || null,
+    status: document.getElementById('userStatus').value,
+  };
+  if (editingUserId) {
+    const updated = data.users.map(u => u.id === editingUserId ? { ...u, ...user, avatar: selectedPhoto || u.avatar || null, password: document.getElementById('userPassword').value || u.password } : u);
+    const updatedCurrentUser = data.currentUser?.id === editingUserId ? updated.find(u => u.id === editingUserId) : data.currentUser;
+    saveData({ users: updated, currentUser: updatedCurrentUser });
+    logActivity(data.currentUser.id, data.currentUser.name, 'update', 'user', editingUserId, `Updated user: ${user.name}`);
+    showToast('User updated!', 'success');
+  } else {
+    const newUser = { id: generateId('user'), ...user, avatar: selectedPhoto || null, password: document.getElementById('userPassword').value, createdAt: new Date().toISOString(), lastLogin: null, loginCount: 0 };
+    saveData({ users: [...data.users, newUser] });
+    logActivity(data.currentUser.id, data.currentUser.name, 'create', 'user', newUser.id, `Created user: ${user.name}`);
+    showToast('User created!', 'success');
+  }
+  closeUserModal(); render();
+}
+
+function editUser(id) { openUserModal(id); }
+function deleteUser(id) {
+  const data = getData();
+  if (id === data.currentUser.id) { showToast('Cannot delete yourself!', 'error'); return; }
+  const u = data.users.find(x => x.id === id);
+  if (!confirm(`Delete user "${u.name}"?`)) return;
+  const updated = data.users.filter(x => x.id !== id);
+  saveData({ users: updated });
+  logActivity(data.currentUser.id, data.currentUser.name, 'delete', 'user', id, `Deleted user: ${u.name}`);
+  showToast('User deleted', 'success'); render();
+}
+
+function openPasswordModal(userId) {
+  passwordUserId = userId;
+  const modal = document.getElementById('passwordModal');
+  modal.classList.remove('hidden'); modal.classList.add('flex');
+  document.getElementById('newPassword').value = '';
+}
+function closePasswordModal() { document.getElementById('passwordModal').classList.add('hidden'); document.getElementById('passwordModal').classList.remove('flex'); passwordUserId = null; }
+function savePassword() {
+  const pwd = document.getElementById('newPassword').value;
+  if (!pwd || !passwordUserId) return;
+  const data = getData();
+  const updated = data.users.map(u => u.id === passwordUserId ? { ...u, password: pwd } : u);
+  saveData({ users: updated });
+  logActivity(data.currentUser.id, data.currentUser.name, 'update', 'user', passwordUserId, 'Changed password');
+  showToast('Password updated!', 'success');
+  closePasswordModal(); render();
+}
+
+function openTeamModal(teamId = null) {
+  editingTeamId = teamId;
+  const modal = document.getElementById('teamModal');
+  modal.classList.remove('hidden'); modal.classList.add('flex');
+  document.getElementById('teamModalTitle').textContent = teamId ? 'Edit Team' : 'Create Team';
+  if (teamId) {
+    const data = getData();
+    const t = data.teams.find(x => x.id === teamId);
+    document.getElementById('teamName').value = t.name;
+    document.getElementById('teamDesc').value = t.description;
+    document.getElementById('teamColor').value = t.color;
+    data.users.forEach(u => {
+      const cb = document.getElementById(`teamMember_${u.id}`);
+      if (cb) cb.checked = t.memberIds.includes(u.id);
+    });
+  } else {
+    document.getElementById('teamName').value = '';
+    document.getElementById('teamDesc').value = '';
+    document.getElementById('teamColor').value = '#3b82f6';
+    document.querySelectorAll('[id^="teamMember_"]').forEach(cb => cb.checked = false);
+  }
+}
+function closeTeamModal() { document.getElementById('teamModal').classList.add('hidden'); document.getElementById('teamModal').classList.remove('flex'); editingTeamId = null; }
+function saveTeam() {
+  const data = getData();
+  const memberIds = Array.from(document.querySelectorAll('[id^="teamMember_"]:checked')).map(cb => cb.value);
+  const team = {
+    name: document.getElementById('teamName').value,
+    description: document.getElementById('teamDesc').value,
+    color: document.getElementById('teamColor').value,
+    memberIds,
+    canUpdateProjectIds: [],
+  };
+  if (editingTeamId) {
+    const updated = data.teams.map(t => t.id === editingTeamId ? { ...t, ...team } : t);
+    saveData({ teams: updated });
+    logActivity(data.currentUser.id, data.currentUser.name, 'update', 'team', editingTeamId, `Updated team: ${team.name}`);
+    showToast('Team updated!', 'success');
+  } else {
+    const newTeam = { id: generateId('team'), ...team, createdAt: new Date().toISOString() };
+    saveData({ teams: [...data.teams, newTeam] });
+    logActivity(data.currentUser.id, data.currentUser.name, 'create', 'team', newTeam.id, `Created team: ${team.name}`);
+    showToast('Team created!', 'success');
+  }
+  closeTeamModal(); render();
+}
+function editTeam(id) { openTeamModal(id); }
+function deleteTeam(id) {
+  const data = getData();
+  const t = data.teams.find(x => x.id === id);
+  if (!confirm(`Delete team "${t.name}"?`)) return;
+  const updated = data.teams.filter(x => x.id !== id);
+  const updatedUsers = data.users.map(u => u.teamId === id ? { ...u, teamId: null } : u);
+  saveData({ teams: updated, users: updatedUsers });
+  logActivity(data.currentUser.id, data.currentUser.name, 'delete', 'team', id, `Deleted team: ${t.name}`);
+  showToast('Team deleted', 'success'); render();
+}
+
+function exportUsersExcel() {
+  const data = getData();
+  const exportData = data.users.map(u => ({ Name: u.name, Email: u.email, Role: u.role, Status: u.status, 'Login Count': u.loginCount, 'Last Login': u.lastLogin || 'Never' }));
+  const ws = XLSX.utils.json_to_sheet(exportData);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Users');
+  XLSX.writeFile(wb, 'users.xlsx');
+  showToast('Users exported!', 'success');
+}
+
+
+// ===================== BOILER TESTS =====================
+function renderBoilerTests() {
+  const data = getData();
+  const tests = data.boilerTests;
+  const currentUser = data.currentUser;
+  const search = window.boilerSearch || '';
+
+  const filtered = tests.filter(t =>
+    t.testNumber.toLowerCase().includes(search.toLowerCase()) ||
+    t.boilerModel.toLowerCase().includes(search.toLowerCase()) ||
+    t.serialNumber.toLowerCase().includes(search.toLowerCase())
+  );
+
+  return `
+    <div class="space-y-6">
+      <div class="flex items-center justify-between">
+        <div>
+          <h1 class="text-3xl font-bold text-slate-900">Boiler Tests</h1>
+          <p class="text-slate-500">Record and manage boiler performance tests</p>
+        </div>
+        <div class="flex gap-2">
+          <input type="file" id="boilerFileInput" class="hidden" accept=".xlsx,.xls,.csv,.txt" onchange="importBoilerTests(this)">
+          <button onclick="document.getElementById('boilerFileInput').click()" class="px-3 py-2 border border-slate-200 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-50">
+            <i class="fa-solid fa-upload mr-2"></i>Import
+          </button>
+          <button onclick="exportBoilerPDF()" class="px-3 py-2 border border-slate-200 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-50">
+            <i class="fa-solid fa-file-pdf mr-2"></i>PDF
+          </button>
+          <button onclick="exportBoilerExcel()" class="px-3 py-2 border border-slate-200 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-50">
+            <i class="fa-solid fa-file-excel mr-2"></i>Excel
+          </button>
+          <button onclick="openBoilerModal()" class="px-3 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700">
+            <i class="fa-solid fa-plus mr-2"></i>New Test
+          </button>
+        </div>
+      </div>
+
+      <div class="relative max-w-sm">
+        <i class="fa-solid fa-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+        <input type="text" placeholder="Search tests..." value="${search}" 
+          class="w-full pl-9 pr-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          oninput="window.boilerSearch = this.value; render();">
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+        ${filtered.map(t => `
+          <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6 card-hover">
+            <div class="flex items-start justify-between mb-3">
+              <div>
+                <h3 class="text-base font-semibold text-slate-900">${t.testNumber}</h3>
+                <p class="text-xs text-slate-400">${t.boilerModel}</p>
+              </div>
+              <div class="flex gap-1">
+                <button onclick="editBoilerTest('${t.id}')" class="p-1.5 rounded-lg hover:bg-slate-100 text-slate-500"><i class="fa-solid fa-pencil text-sm"></i></button>
+                <button onclick="deleteBoilerTest('${t.id}')" class="p-1.5 rounded-lg hover:bg-slate-100 text-red-500"><i class="fa-solid fa-trash text-sm"></i></button>
+              </div>
+            </div>
+            <div class="grid grid-cols-2 gap-2 text-sm mb-3">
+              <div><span class="text-slate-400">Serial:</span> ${t.serialNumber}</div>
+              <div><span class="text-slate-400">Efficiency:</span> ${t.efficiency}%</div>
+              <div><span class="text-slate-400">Max Pressure:</span> ${t.maxPressure} bar</div>
+              <div><span class="text-slate-400">Steam Output:</span> ${t.steamOutput} kg/h</div>
+            </div>
+            <div class="flex flex-wrap gap-1 mb-2">
+              ${t.safetyValveTest ? '<span class="text-[10px] px-2 py-0.5 rounded-full border border-green-200 bg-green-50 text-green-700">Safety Valve</span>' : ''}
+              ${t.waterLevelControl ? '<span class="text-[10px] px-2 py-0.5 rounded-full border border-green-200 bg-green-50 text-green-700">Water Level</span>' : ''}
+              ${t.pressureGaugeTest ? '<span class="text-[10px] px-2 py-0.5 rounded-full border border-green-200 bg-green-50 text-green-700">Pressure Gauge</span>' : ''}
+              ${t.lowWaterCutoff ? '<span class="text-[10px] px-2 py-0.5 rounded-full border border-green-200 bg-green-50 text-green-700">Low Water</span>' : ''}
+              ${t.combustionTest ? '<span class="text-[10px] px-2 py-0.5 rounded-full border border-green-200 bg-green-50 text-green-700">Combustion</span>' : ''}
+            </div>
+            <p class="text-xs text-slate-400">${t.notes}</p>
+          </div>
+        `).join('')}
+      </div>
+
+      <!-- Boiler Modal -->
+      <div id="boilerModal" class="modal-overlay fixed inset-0 z-50 bg-black/50 hidden items-center justify-center p-4">
+        <div class="modal-content bg-white rounded-xl shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto p-6">
+          <div class="flex items-center justify-between mb-4">
+            <h2 id="boilerModalTitle" class="text-xl font-bold text-slate-900">New Boiler Test</h2>
+            <button onclick="closeBoilerModal()" class="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400"><i class="fa-solid fa-xmark"></i></button>
+          </div>
+          <div class="space-y-4">
+            <div class="grid grid-cols-2 gap-4">
+              <div><label class="block text-sm font-medium text-slate-700 mb-1">Test Number</label><input type="text" id="btTestNumber" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"></div>
+              <div><label class="block text-sm font-medium text-slate-700 mb-1">Test Date</label><input type="date" id="btTestDate" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"></div>
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+              <div><label class="block text-sm font-medium text-slate-700 mb-1">Boiler Model</label><input type="text" id="btModel" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"></div>
+              <div><label class="block text-sm font-medium text-slate-700 mb-1">Serial Number</label><input type="text" id="btSerial" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"></div>
+            </div>
+            <div><label class="block text-sm font-medium text-slate-700 mb-1">Manufacturer</label><input type="text" id="btManufacturer" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"></div>
+            <div class="grid grid-cols-3 gap-4">
+              <div><label class="block text-sm font-medium text-slate-700 mb-1">Efficiency (%)</label><input type="number" id="btEfficiency" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"></div>
+              <div><label class="block text-sm font-medium text-slate-700 mb-1">Max Pressure (bar)</label><input type="number" id="btMaxPressure" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"></div>
+              <div><label class="block text-sm font-medium text-slate-700 mb-1">Operating Pressure (bar)</label><input type="number" id="btOpPressure" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"></div>
+            </div>
+            <div class="grid grid-cols-3 gap-4">
+              <div><label class="block text-sm font-medium text-slate-700 mb-1">Steam Output (kg/h)</label><input type="number" id="btSteam" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"></div>
+              <div><label class="block text-sm font-medium text-slate-700 mb-1">Fuel Consumption (L/h)</label><input type="number" id="btFuel" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"></div>
+              <div><label class="block text-sm font-medium text-slate-700 mb-1">Flue Gas Temp (°C)</label><input type="number" id="btFlueTemp" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"></div>
+            </div>
+            <div><label class="block text-sm font-medium text-slate-700 mb-1">Ambient Temp (°C)</label><input type="number" id="btAmbient" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"></div>
+            <div class="grid grid-cols-2 gap-4">
+              <label class="flex items-center gap-2 text-sm"><input type="checkbox" id="btSafety" class="rounded"><span>Safety Valve Test</span></label>
+              <label class="flex items-center gap-2 text-sm"><input type="checkbox" id="btWater" class="rounded"><span>Water Level Control</span></label>
+              <label class="flex items-center gap-2 text-sm"><input type="checkbox" id="btGauge" class="rounded"><span>Pressure Gauge Test</span></label>
+              <label class="flex items-center gap-2 text-sm"><input type="checkbox" id="btLowWater" class="rounded"><span>Low Water Cutoff</span></label>
+              <label class="flex items-center gap-2 text-sm"><input type="checkbox" id="btCombustion" class="rounded"><span>Combustion Test</span></label>
+            </div>
+            <div><label class="block text-sm font-medium text-slate-700 mb-1">Notes</label><input type="text" id="btNotes" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"></div>
+          </div>
+          <div class="flex justify-end gap-2 mt-6">
+            <button onclick="closeBoilerModal()" class="px-4 py-2 border border-slate-200 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-50">Cancel</button>
+            <button onclick="saveBoilerTest()" class="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700">Save Test</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+let editingBoilerId = null;
+
+function openBoilerModal(id = null) {
+  editingBoilerId = id;
+  const modal = document.getElementById('boilerModal');
+  modal.classList.remove('hidden'); modal.classList.add('flex');
+  document.getElementById('boilerModalTitle').textContent = id ? 'Edit Boiler Test' : 'New Boiler Test';
+  if (id) {
+    const data = getData();
+    const t = data.boilerTests.find(x => x.id === id);
+    document.getElementById('btTestNumber').value = t.testNumber;
+    document.getElementById('btTestDate').value = t.testDate;
+    document.getElementById('btModel').value = t.boilerModel;
+    document.getElementById('btSerial').value = t.serialNumber;
+    document.getElementById('btManufacturer').value = t.manufacturer;
+    document.getElementById('btEfficiency').value = t.efficiency;
+    document.getElementById('btMaxPressure').value = t.maxPressure;
+    document.getElementById('btOpPressure').value = t.operatingPressure;
+    document.getElementById('btSteam').value = t.steamOutput;
+    document.getElementById('btFuel').value = t.fuelConsumption;
+    document.getElementById('btFlueTemp').value = t.flueGasTemp;
+    document.getElementById('btAmbient').value = t.ambientTemp;
+    document.getElementById('btSafety').checked = t.safetyValveTest;
+    document.getElementById('btWater').checked = t.waterLevelControl;
+    document.getElementById('btGauge').checked = t.pressureGaugeTest;
+    document.getElementById('btLowWater').checked = t.lowWaterCutoff;
+    document.getElementById('btCombustion').checked = t.combustionTest;
+    document.getElementById('btNotes').value = t.notes;
+  } else {
+    ['btTestNumber','btTestDate','btModel','btSerial','btManufacturer','btEfficiency','btMaxPressure','btOpPressure','btSteam','btFuel','btFlueTemp','btAmbient','btNotes'].forEach(id => document.getElementById(id).value = '');
+    ['btSafety','btWater','btGauge','btLowWater','btCombustion'].forEach(id => document.getElementById(id).checked = false);
+  }
+}
+function closeBoilerModal() { document.getElementById('boilerModal').classList.add('hidden'); document.getElementById('boilerModal').classList.remove('flex'); editingBoilerId = null; }
+function saveBoilerTest() {
+  const data = getData();
+  const test = {
+    testNumber: document.getElementById('btTestNumber').value,
+    testDate: document.getElementById('btTestDate').value,
+    boilerModel: document.getElementById('btModel').value,
+    serialNumber: document.getElementById('btSerial').value,
+    manufacturer: document.getElementById('btManufacturer').value,
+    efficiency: parseFloat(document.getElementById('btEfficiency').value) || 0,
+    maxPressure: parseFloat(document.getElementById('btMaxPressure').value) || 0,
+    operatingPressure: parseFloat(document.getElementById('btOpPressure').value) || 0,
+    steamOutput: parseFloat(document.getElementById('btSteam').value) || 0,
+    fuelConsumption: parseFloat(document.getElementById('btFuel').value) || 0,
+    flueGasTemp: parseFloat(document.getElementById('btFlueTemp').value) || 0,
+    ambientTemp: parseFloat(document.getElementById('btAmbient').value) || 0,
+    safetyValveTest: document.getElementById('btSafety').checked,
+    waterLevelControl: document.getElementById('btWater').checked,
+    pressureGaugeTest: document.getElementById('btGauge').checked,
+    lowWaterCutoff: document.getElementById('btLowWater').checked,
+    combustionTest: document.getElementById('btCombustion').checked,
+    notes: document.getElementById('btNotes').value,
+  };
+  if (editingBoilerId) {
+    const updated = data.boilerTests.map(t => t.id === editingBoilerId ? { ...t, ...test } : t);
+    saveData({ boilerTests: updated });
+    logActivity(data.currentUser.id, data.currentUser.name, 'update', 'boiler-test', editingBoilerId, `Updated test: ${test.testNumber}`);
+    showToast('Test updated!', 'success');
+  } else {
+    const newTest = { id: generateId('boiler'), ...test, createdBy: data.currentUser.id, createdAt: new Date().toISOString(), attachments: [] };
+    saveData({ boilerTests: [...data.boilerTests, newTest] });
+    logActivity(data.currentUser.id, data.currentUser.name, 'create', 'boiler-test', newTest.id, `Created test: ${test.testNumber}`);
+    showToast('Test created!', 'success');
+  }
+  closeBoilerModal(); render();
+}
+function editBoilerTest(id) { openBoilerModal(id); }
+function deleteBoilerTest(id) {
+  const data = getData();
+  const t = data.boilerTests.find(x => x.id === id);
+  if (!confirm(`Delete test "${t.testNumber}"?`)) return;
+  const updated = data.boilerTests.filter(x => x.id !== id);
+  saveData({ boilerTests: updated });
+  logActivity(data.currentUser.id, data.currentUser.name, 'delete', 'boiler-test', id, `Deleted test: ${t.testNumber}`);
+  showToast('Test deleted', 'success'); render();
+}
+
+function importBoilerTests(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      const data = new Uint8Array(e.target.result);
+      const workbook = XLSX.read(data, { type: 'array' });
+      const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+      const jsonData = XLSX.utils.sheet_to_json(firstSheet);
+      if (jsonData.length > 0) {
+        const data = getData();
+        const imported = jsonData.map(row => ({
+          id: generateId('boiler'),
+          testNumber: row['Test Number'] || row['testNumber'] || `BT-${Date.now()}`,
+          boilerModel: row['Boiler Model'] || row['boilerModel'] || '',
+          serialNumber: row['Serial Number'] || row['serialNumber'] || '',
+          manufacturer: row['Manufacturer'] || row['manufacturer'] || '',
+          testDate: row['Test Date'] || row['testDate'] || new Date().toISOString().split('T')[0],
+          efficiency: parseFloat(row['Efficiency (%)'] || row['efficiency'] || 0),
+          maxPressure: parseFloat(row['Max Pressure (bar)'] || row['maxPressure'] || 0),
+          operatingPressure: parseFloat(row['Operating Pressure (bar)'] || row['operatingPressure'] || 0),
+          steamOutput: parseFloat(row['Steam Output (kg/h)'] || row['steamOutput'] || 0),
+          fuelConsumption: parseFloat(row['Fuel Consumption (L/h)'] || row['fuelConsumption'] || 0),
+          flueGasTemp: parseFloat(row['Flue Gas Temp'] || row['flueGasTemp'] || 0),
+          ambientTemp: parseFloat(row['Ambient Temp'] || row['ambientTemp'] || 0),
+          safetyValveTest: String(row['Safety Valve'] || row['safetyValveTest'] || '').toLowerCase() === 'pass',
+          waterLevelControl: String(row['Water Level Control'] || row['waterLevelControl'] || '').toLowerCase() === 'pass',
+          pressureGaugeTest: String(row['Pressure Gauge'] || row['pressureGaugeTest'] || '').toLowerCase() === 'pass',
+          lowWaterCutoff: String(row['Low Water Cutoff'] || row['lowWaterCutoff'] || '').toLowerCase() === 'pass',
+          combustionTest: String(row['Combustion Test'] || row['combustionTest'] || '').toLowerCase() === 'pass',
+          notes: row['Notes'] || row['notes'] || '',
+          createdBy: data.currentUser?.id || '',
+          createdAt: new Date().toISOString(),
+          attachments: [],
+        }));
+        saveData({ boilerTests: [...data.boilerTests, ...imported] });
+        logActivity(data.currentUser.id, data.currentUser.name, 'import', 'boiler-test', 'batch', `Imported ${imported.length} boiler tests`);
+        showToast(`Imported ${imported.length} tests!`, 'success');
+        render();
+      }
+    } catch (err) {
+      showToast('Error importing file', 'error');
+    }
+  };
+  reader.readAsArrayBuffer(file);
+  input.value = '';
+}
+
+function exportBoilerPDF() {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+  const data = getData();
+  doc.setFontSize(18); doc.text('Boiler Test Reports', 14, 20);
+  const tableData = data.boilerTests.map(t => [t.testNumber, t.boilerModel, t.serialNumber, t.efficiency + '%', t.maxPressure + ' bar', t.safetyValveTest ? 'Pass' : 'Fail', t.testDate]);
+  doc.autoTable({ head: [['Test #', 'Model', 'Serial', 'Efficiency', 'Max Pressure', 'Safety', 'Date']], body: tableData, startY: 30, styles: { fontSize: 9 }, headStyles: { fillColor: [37, 99, 235] } });
+  doc.save('boiler-tests.pdf');
+  showToast('PDF exported!', 'success');
+}
+
+function exportBoilerExcel() {
+  const data = getData();
+  const exportData = data.boilerTests.map(t => ({
+    'Test Number': t.testNumber, 'Boiler Model': t.boilerModel, 'Serial Number': t.serialNumber,
+    Manufacturer: t.manufacturer, 'Test Date': t.testDate, 'Efficiency (%)': t.efficiency,
+    'Max Pressure (bar)': t.maxPressure, 'Operating Pressure (bar)': t.operatingPressure,
+    'Steam Output (kg/h)': t.steamOutput, 'Fuel Consumption (L/h)': t.fuelConsumption,
+    'Flue Gas Temp': t.flueGasTemp, 'Ambient Temp': t.ambientTemp,
+    'Safety Valve': t.safetyValveTest ? 'Pass' : 'Fail', 'Water Level': t.waterLevelControl ? 'Pass' : 'Fail',
+    'Pressure Gauge': t.pressureGaugeTest ? 'Pass' : 'Fail', 'Low Water Cutoff': t.lowWaterCutoff ? 'Pass' : 'Fail',
+    'Combustion Test': t.combustionTest ? 'Pass' : 'Fail', Notes: t.notes
+  }));
+  const ws = XLSX.utils.json_to_sheet(exportData);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Boiler Tests');
+  XLSX.writeFile(wb, 'boiler-tests.xlsx');
+  showToast('Excel exported!', 'success');
+}
+
+
+// ===================== PERFORMANCE =====================
+function renderPerformance() {
+  const data = getData();
+  const performances = data.productPerformances;
+  const currentUser = data.currentUser;
+  const search = window.perfSearch || '';
+
+  const filtered = performances.filter(p =>
+    p.productName.toLowerCase().includes(search.toLowerCase()) ||
+    p.category.toLowerCase().includes(search.toLowerCase())
+  );
+
+  // Prepare chart data
+  const categoryData = {};
+  performances.forEach(p => { categoryData[p.category] = (categoryData[p.category] || 0) + 1; });
+  const pieLabels = Object.keys(categoryData);
+  const pieValues = Object.values(categoryData);
+
+  const barData = performances.map(p => ({
+    name: p.productName.length > 15 ? p.productName.substring(0, 15) + '...' : p.productName,
+    efficiency: p.efficiency,
+    reliability: p.reliability,
+    cost: p.costEffectiveness,
+    satisfaction: p.customerSatisfaction
+  }));
+
+  return `
+    <div class="space-y-6">
+      <div class="flex items-center justify-between">
+        <div>
+          <h1 class="text-3xl font-bold text-slate-900">Product Performance</h1>
+          <p class="text-slate-500">Track and analyze product metrics</p>
+        </div>
+        <div class="flex gap-2">
+          <button onclick="exportPerfPDF()" class="px-3 py-2 border border-slate-200 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-50">
+            <i class="fa-solid fa-file-pdf mr-2"></i>PDF
+          </button>
+          <button onclick="openPerfModal()" class="px-3 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700">
+            <i class="fa-solid fa-plus mr-2"></i>Add Product
+          </button>
+        </div>
+      </div>
+
+      <!-- Pie Charts -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-4">
+          <h3 class="text-sm font-semibold text-slate-900 mb-2">Products by Category</h3>
+          <canvas id="pieCategory" height="200"></canvas>
+        </div>
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-4">
+          <h3 class="text-sm font-semibold text-slate-900 mb-2">Efficiency Distribution</h3>
+          <canvas id="pieEfficiency" height="200"></canvas>
+        </div>
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-4">
+          <h3 class="text-sm font-semibold text-slate-900 mb-2">Reliability Scores</h3>
+          <canvas id="pieReliability" height="200"></canvas>
+        </div>
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-4">
+          <h3 class="text-sm font-semibold text-slate-900 mb-2">Customer Satisfaction</h3>
+          <canvas id="pieSatisfaction" height="200"></canvas>
+        </div>
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-4">
+          <h3 class="text-sm font-semibold text-slate-900 mb-2">Cost Effectiveness</h3>
+          <canvas id="pieCost" height="200"></canvas>
+        </div>
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-4">
+          <h3 class="text-sm font-semibold text-slate-900 mb-2">Overall Performance</h3>
+          <canvas id="pieOverall" height="200"></canvas>
+        </div>
+      </div>
+
+      <!-- Bar Charts -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-4">
+          <h3 class="text-sm font-semibold text-slate-900 mb-2">Product Comparison</h3>
+          <canvas id="barComparison" height="300"></canvas>
+        </div>
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-4">
+          <h3 class="text-sm font-semibold text-slate-900 mb-2">Performance Trend</h3>
+          <canvas id="lineTrend" height="300"></canvas>
+        </div>
+      </div>
+
+      <div class="relative max-w-sm">
+        <i class="fa-solid fa-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+        <input type="text" placeholder="Search products..." value="${search}" 
+          class="w-full pl-9 pr-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          oninput="window.perfSearch = this.value; render();">
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        ${filtered.map(p => `
+          <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6 card-hover">
+            <div class="flex items-start justify-between mb-3">
+              <div>
+                <h3 class="text-base font-semibold text-slate-900">${p.productName}</h3>
+                <span class="text-[10px] px-2 py-0.5 rounded-full border border-slate-200">${p.category}</span>
+              </div>
+              <div class="flex gap-1">
+                <button onclick="editPerf('${p.id}')" class="p-1.5 rounded-lg hover:bg-slate-100 text-slate-500"><i class="fa-solid fa-pencil text-sm"></i></button>
+                <button onclick="deletePerf('${p.id}')" class="p-1.5 rounded-lg hover:bg-slate-100 text-red-500"><i class="fa-solid fa-trash text-sm"></i></button>
+              </div>
+            </div>
+            <div class="grid grid-cols-2 gap-2 mb-2">
+              <div class="bg-blue-50 p-2 rounded text-center"><div class="text-blue-600 font-bold text-lg">${p.efficiency}%</div><div class="text-[10px] text-slate-500">Efficiency</div></div>
+              <div class="bg-green-50 p-2 rounded text-center"><div class="text-green-600 font-bold text-lg">${p.reliability}%</div><div class="text-[10px] text-slate-500">Reliability</div></div>
+              <div class="bg-yellow-50 p-2 rounded text-center"><div class="text-yellow-600 font-bold text-lg">${p.costEffectiveness}%</div><div class="text-[10px] text-slate-500">Cost Effect.</div></div>
+              <div class="bg-purple-50 p-2 rounded text-center"><div class="text-purple-600 font-bold text-lg">${p.customerSatisfaction}%</div><div class="text-[10px] text-slate-500">Satisfaction</div></div>
+            </div>
+            <p class="text-xs text-slate-400">${p.notes}</p>
+            <p class="text-xs text-slate-400 mt-1">Tested: ${p.testDate}</p>
+          </div>
+        `).join('')}
+      </div>
+
+      <!-- Performance Modal -->
+      <div id="perfModal" class="modal-overlay fixed inset-0 z-50 bg-black/50 hidden items-center justify-center p-4">
+        <div class="modal-content bg-white rounded-xl shadow-xl max-w-lg w-full p-6">
+          <h2 id="perfModalTitle" class="text-xl font-bold text-slate-900 mb-4">Add Product Performance</h2>
+          <div class="space-y-4">
+            <div><label class="block text-sm font-medium text-slate-700 mb-1">Product Name</label><input type="text" id="perfName" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"></div>
+            <div><label class="block text-sm font-medium text-slate-700 mb-1">Category</label><input type="text" id="perfCategory" placeholder="e.g. Boilers, Controls" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"></div>
+            <div class="grid grid-cols-2 gap-4">
+              <div><label class="block text-sm font-medium text-slate-700 mb-1">Efficiency (%)</label><input type="number" id="perfEfficiency" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"></div>
+              <div><label class="block text-sm font-medium text-slate-700 mb-1">Reliability (%)</label><input type="number" id="perfReliability" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"></div>
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+              <div><label class="block text-sm font-medium text-slate-700 mb-1">Cost Effectiveness (%)</label><input type="number" id="perfCost" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"></div>
+              <div><label class="block text-sm font-medium text-slate-700 mb-1">Customer Satisfaction (%)</label><input type="number" id="perfSatisfaction" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"></div>
+            </div>
+            <div><label class="block text-sm font-medium text-slate-700 mb-1">Test Date</label><input type="date" id="perfDate" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"></div>
+            <div><label class="block text-sm font-medium text-slate-700 mb-1">Notes</label><input type="text" id="perfNotes" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"></div>
+          </div>
+          <div class="flex justify-end gap-2 mt-6">
+            <button onclick="closePerfModal()" class="px-4 py-2 border border-slate-200 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-50">Cancel</button>
+            <button onclick="savePerf()" class="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700">Save</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+let editingPerfId = null;
+let charts = {};
+
+function initCharts() {
+  const data = getData();
+  const performances = data.productPerformances;
+  if (!performances.length) return;
+
+  const colors = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
+
+  // Category Pie
+  const catData = {};
+  performances.forEach(p => { catData[p.category] = (catData[p.category] || 0) + 1; });
+  if (document.getElementById('pieCategory')) {
+    charts.pieCategory = new Chart(document.getElementById('pieCategory'), {
+      type: 'pie',
+      data: { labels: Object.keys(catData), datasets: [{ data: Object.values(catData), backgroundColor: colors }] },
+      options: { responsive: true, plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 10 } } } } }
+    });
+  }
+
+  // Efficiency Pie
+  if (document.getElementById('pieEfficiency')) {
+    charts.pieEfficiency = new Chart(document.getElementById('pieEfficiency'), {
+      type: 'pie',
+      data: { labels: performances.map(p => p.productName), datasets: [{ data: performances.map(p => p.efficiency), backgroundColor: colors }] },
+      options: { responsive: true, plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 10 } } } } }
+    });
+  }
+
+  // Reliability Pie
+  if (document.getElementById('pieReliability')) {
+    charts.pieReliability = new Chart(document.getElementById('pieReliability'), {
+      type: 'pie',
+      data: { labels: performances.map(p => p.productName), datasets: [{ data: performances.map(p => p.reliability), backgroundColor: colors }] },
+      options: { responsive: true, plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 10 } } } } }
+    });
+  }
+
+  // Satisfaction Pie
+  if (document.getElementById('pieSatisfaction')) {
+    charts.pieSatisfaction = new Chart(document.getElementById('pieSatisfaction'), {
+      type: 'pie',
+      data: { labels: performances.map(p => p.productName), datasets: [{ data: performances.map(p => p.customerSatisfaction), backgroundColor: colors }] },
+      options: { responsive: true, plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 10 } } } } }
+    });
+  }
+
+  // Cost Pie
+  if (document.getElementById('pieCost')) {
+    charts.pieCost = new Chart(document.getElementById('pieCost'), {
+      type: 'pie',
+      data: { labels: performances.map(p => p.productName), datasets: [{ data: performances.map(p => p.costEffectiveness), backgroundColor: colors }] },
+      options: { responsive: true, plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 10 } } } } }
+    });
+  }
+
+  // Overall Pie
+  if (document.getElementById('pieOverall')) {
+    charts.pieOverall = new Chart(document.getElementById('pieOverall'), {
+      type: 'pie',
+      data: { labels: performances.map(p => p.productName), datasets: [{ data: performances.map(p => (p.efficiency + p.reliability + p.costEffectiveness + p.customerSatisfaction) / 4), backgroundColor: colors }] },
+      options: { responsive: true, plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 10 } } } } }
+    });
+  }
+
+  // Bar Comparison
+  if (document.getElementById('barComparison')) {
+    const labels = performances.map(p => p.productName.length > 15 ? p.productName.substring(0, 15) + '...' : p.productName);
+    charts.barComparison = new Chart(document.getElementById('barComparison'), {
+      type: 'bar',
+      data: {
+        labels,
+        datasets: [
+          { label: 'Efficiency', data: performances.map(p => p.efficiency), backgroundColor: '#3b82f6' },
+          { label: 'Reliability', data: performances.map(p => p.reliability), backgroundColor: '#10b981' },
+          { label: 'Cost Effect.', data: performances.map(p => p.costEffectiveness), backgroundColor: '#f59e0b' },
+          { label: 'Satisfaction', data: performances.map(p => p.customerSatisfaction), backgroundColor: '#8b5cf6' },
+        ]
+      },
+      options: { responsive: true, scales: { y: { beginAtZero: true, max: 100 } }, plugins: { legend: { position: 'bottom' } } }
+    });
+  }
+
+  // Line Trend
+  if (document.getElementById('lineTrend')) {
+    const labels = performances.map(p => p.productName.length > 15 ? p.productName.substring(0, 15) + '...' : p.productName);
+    charts.lineTrend = new Chart(document.getElementById('lineTrend'), {
+      type: 'line',
+      data: {
+        labels,
+        datasets: [
+          { label: 'Efficiency', data: performances.map(p => p.efficiency), borderColor: '#3b82f6', tension: 0.3 },
+          { label: 'Reliability', data: performances.map(p => p.reliability), borderColor: '#10b981', tension: 0.3 },
+          { label: 'Cost Effect.', data: performances.map(p => p.costEffectiveness), borderColor: '#f59e0b', tension: 0.3 },
+          { label: 'Satisfaction', data: performances.map(p => p.customerSatisfaction), borderColor: '#8b5cf6', tension: 0.3 },
+        ]
+      },
+      options: { responsive: true, scales: { y: { beginAtZero: true, max: 100 } }, plugins: { legend: { position: 'bottom' } } }
+    });
+  }
+}
+
+function openPerfModal(id = null) {
+  editingPerfId = id;
+  const modal = document.getElementById('perfModal');
+  modal.classList.remove('hidden'); modal.classList.add('flex');
+  document.getElementById('perfModalTitle').textContent = id ? 'Edit Product' : 'Add Product Performance';
+  if (id) {
+    const data = getData();
+    const p = data.productPerformances.find(x => x.id === id);
+    document.getElementById('perfName').value = p.productName;
+    document.getElementById('perfCategory').value = p.category;
+    document.getElementById('perfEfficiency').value = p.efficiency;
+    document.getElementById('perfReliability').value = p.reliability;
+    document.getElementById('perfCost').value = p.costEffectiveness;
+    document.getElementById('perfSatisfaction').value = p.customerSatisfaction;
+    document.getElementById('perfDate').value = p.testDate;
+    document.getElementById('perfNotes').value = p.notes;
+  } else {
+    ['perfName','perfCategory','perfEfficiency','perfReliability','perfCost','perfSatisfaction','perfDate','perfNotes'].forEach(id => document.getElementById(id).value = '');
+  }
+}
+function closePerfModal() { document.getElementById('perfModal').classList.add('hidden'); document.getElementById('perfModal').classList.remove('flex'); editingPerfId = null; }
+function savePerf() {
+  const data = getData();
+  const perf = {
+    productName: document.getElementById('perfName').value,
+    category: document.getElementById('perfCategory').value,
+    efficiency: parseFloat(document.getElementById('perfEfficiency').value) || 0,
+    reliability: parseFloat(document.getElementById('perfReliability').value) || 0,
+    costEffectiveness: parseFloat(document.getElementById('perfCost').value) || 0,
+    customerSatisfaction: parseFloat(document.getElementById('perfSatisfaction').value) || 0,
+    testDate: document.getElementById('perfDate').value,
+    notes: document.getElementById('perfNotes').value,
+  };
+  if (editingPerfId) {
+    const updated = data.productPerformances.map(p => p.id === editingPerfId ? { ...p, ...perf } : p);
+    saveData({ productPerformances: updated });
+    logActivity(data.currentUser.id, data.currentUser.name, 'update', 'performance', editingPerfId, `Updated: ${perf.productName}`);
+    showToast('Product updated!', 'success');
+  } else {
+    const newPerf = { id: generateId('perf'), ...perf };
+    saveData({ productPerformances: [...data.productPerformances, newPerf] });
+    logActivity(data.currentUser.id, data.currentUser.name, 'create', 'performance', newPerf.id, `Added: ${perf.productName}`);
+    showToast('Product added!', 'success');
+  }
+  closePerfModal(); render();
+}
+function editPerf(id) { openPerfModal(id); }
+function deletePerf(id) {
+  const data = getData();
+  const p = data.productPerformances.find(x => x.id === id);
+  if (!confirm(`Delete "${p.productName}"?`)) return;
+  const updated = data.productPerformances.filter(x => x.id !== id);
+  saveData({ productPerformances: updated });
+  logActivity(data.currentUser.id, data.currentUser.name, 'delete', 'performance', id, `Deleted: ${p.productName}`);
+  showToast('Product deleted', 'success'); render();
+}
+function exportPerfPDF() {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+  const data = getData();
+  doc.setFontSize(18); doc.text('Product Performance Report', 14, 20);
+  const tableData = data.productPerformances.map(p => [p.productName, p.category, p.efficiency + '%', p.reliability + '%', p.costEffectiveness + '%', p.customerSatisfaction + '%', p.testDate]);
+  doc.autoTable({ head: [['Product', 'Category', 'Efficiency', 'Reliability', 'Cost Effect.', 'Satisfaction', 'Date']], body: tableData, startY: 30, styles: { fontSize: 9 }, headStyles: { fillColor: [37, 99, 235] } });
+  doc.save('product-performance.pdf');
+  showToast('PDF exported!', 'success');
+}
+
+
+// ===================== DESIGN CHANGES =====================
+function renderDesignChanges() {
+  const data = getData();
+  const changes = data.designChanges;
+  const projects = data.projects;
+  const currentUser = data.currentUser;
+  const search = window.designSearch || '';
+
+  const filtered = changes.filter(c =>
+    c.title.toLowerCase().includes(search.toLowerCase()) ||
+    c.description.toLowerCase().includes(search.toLowerCase()) ||
+    c.projectName.toLowerCase().includes(search.toLowerCase())
+  );
+
+  const statusColors = { proposed: 'bg-yellow-100 text-yellow-700', approved: 'bg-green-100 text-green-700', rejected: 'bg-red-100 text-red-700', implemented: 'bg-blue-100 text-blue-700' };
+  const typeColors = { design: 'bg-purple-100 text-purple-700', specification: 'bg-blue-100 text-blue-700', material: 'bg-orange-100 text-orange-700', process: 'bg-teal-100 text-teal-700', other: 'bg-gray-100 text-gray-700' };
+  const impactColors = { low: 'bg-green-100 text-green-700', medium: 'bg-yellow-100 text-yellow-700', high: 'bg-red-100 text-red-700' };
+
+  return `
+    <div class="space-y-6">
+      <div class="flex items-center justify-between">
+        <div>
+          <h1 class="text-3xl font-bold text-slate-900">Design Changes</h1>
+          <p class="text-slate-500">Track product design modifications and approvals</p>
+        </div>
+        <div class="flex gap-2">
+          <button onclick="exportDesignPDF()" class="px-3 py-2 border border-slate-200 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-50">
+            <i class="fa-solid fa-file-pdf mr-2"></i>PDF
+          </button>
+          <button onclick="openDesignModal()" class="px-3 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700">
+            <i class="fa-solid fa-plus mr-2"></i>New Change
+          </button>
+        </div>
+      </div>
+
+      <div class="relative max-w-sm">
+        <i class="fa-solid fa-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+        <input type="text" placeholder="Search changes..." value="${search}" 
+          class="w-full pl-9 pr-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          oninput="window.designSearch = this.value; render();">
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        ${filtered.map(c => `
+          <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6 card-hover">
+            <div class="flex items-start justify-between mb-3">
+              <div class="flex items-center gap-2">
+                <i class="fa-solid fa-code-branch text-blue-500"></i>
+                <div>
+                  <h3 class="text-base font-semibold text-slate-900">${c.title}</h3>
+                  <p class="text-xs text-slate-400">${c.projectName}</p>
+                </div>
+              </div>
+              <div class="flex gap-1">
+                <button onclick="editDesignChange('${c.id}')" class="p-1.5 rounded-lg hover:bg-slate-100 text-slate-500"><i class="fa-solid fa-pencil text-sm"></i></button>
+                <button onclick="deleteDesignChange('${c.id}')" class="p-1.5 rounded-lg hover:bg-slate-100 text-red-500"><i class="fa-solid fa-trash text-sm"></i></button>
+              </div>
+            </div>
+            <div class="flex gap-2 mb-3 flex-wrap">
+              <span class="text-[10px] px-2 py-0.5 rounded-full font-medium ${statusColors[c.status]}">${c.status}</span>
+              <span class="text-[10px] px-2 py-0.5 rounded-full font-medium ${typeColors[c.changeType]}">${c.changeType}</span>
+              <span class="text-[10px] px-2 py-0.5 rounded-full font-medium ${impactColors[c.impact]}">${c.impact} impact</span>
+            </div>
+            <p class="text-sm text-slate-500 mb-2">${c.description}</p>
+            <div class="text-xs text-slate-400 space-y-1">
+              <p>Requested by: ${c.requestedByName}</p>
+              ${c.approvedByName ? `<p>Approved by: ${c.approvedByName}</p>` : ''}
+              <p>Created: ${new Date(c.createdAt).toLocaleDateString()}</p>
+            </div>
+            ${c.status === 'proposed' ? `
+              <button onclick="approveDesignChange('${c.id}')" class="w-full mt-3 px-3 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700">
+                Approve Change
+              </button>
+            ` : ''}
+          </div>
+        `).join('')}
+      </div>
+
+      <!-- Design Modal -->
+      <div id="designModal" class="modal-overlay fixed inset-0 z-50 bg-black/50 hidden items-center justify-center p-4">
+        <div class="modal-content bg-white rounded-xl shadow-xl max-w-lg w-full p-6">
+          <div class="flex items-center justify-between mb-4">
+            <h2 id="designModalTitle" class="text-xl font-bold text-slate-900">New Design Change</h2>
+            <button onclick="closeDesignModal()" class="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400"><i class="fa-solid fa-xmark"></i></button>
+          </div>
+          <div class="space-y-4">
+            <div>
+              <label class="block text-sm font-medium text-slate-700 mb-1">Project</label>
+              <select id="designProject" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                ${projects.map(p => `<option value="${p.id}">${p.name}</option>`).join('')}
+              </select>
+            </div>
+            <div><label class="block text-sm font-medium text-slate-700 mb-1">Title</label><input type="text" id="designTitle" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"></div>
+            <div><label class="block text-sm font-medium text-slate-700 mb-1">Description</label><textarea id="designDesc" rows="3" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea></div>
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm font-medium text-slate-700 mb-1">Type</label>
+                <select id="designType" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                  <option value="design">Design</option><option value="specification">Specification</option><option value="material">Material</option><option value="process">Process</option><option value="other">Other</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-slate-700 mb-1">Impact</label>
+                <select id="designImpact" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                  <option value="low">Low</option><option value="medium">Medium</option><option value="high">High</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          <div class="flex justify-end gap-2 mt-6">
+            <button onclick="closeDesignModal()" class="px-4 py-2 border border-slate-200 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-50">Cancel</button>
+            <button onclick="saveDesignChange()" class="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700">Save</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+let editingDesignId = null;
+
+function openDesignModal(id = null) {
+  editingDesignId = id;
+  const modal = document.getElementById('designModal');
+  modal.classList.remove('hidden'); modal.classList.add('flex');
+  document.getElementById('designModalTitle').textContent = id ? 'Edit Design Change' : 'New Design Change';
+  if (id) {
+    const data = getData();
+    const c = data.designChanges.find(x => x.id === id);
+    document.getElementById('designProject').value = c.projectId;
+    document.getElementById('designTitle').value = c.title;
+    document.getElementById('designDesc').value = c.description;
+    document.getElementById('designType').value = c.changeType;
+    document.getElementById('designImpact').value = c.impact;
+  } else {
+    document.getElementById('designProject').selectedIndex = 0;
+    document.getElementById('designTitle').value = '';
+    document.getElementById('designDesc').value = '';
+    document.getElementById('designType').value = 'design';
+    document.getElementById('designImpact').value = 'medium';
+  }
+}
+function closeDesignModal() { document.getElementById('designModal').classList.add('hidden'); document.getElementById('designModal').classList.remove('flex'); editingDesignId = null; }
+function saveDesignChange() {
+  const data = getData();
+  const project = data.projects.find(p => p.id === document.getElementById('designProject').value);
+  const change = {
+    projectId: document.getElementById('designProject').value,
+    projectName: project?.name || 'Unknown',
+    title: document.getElementById('designTitle').value,
+    description: document.getElementById('designDesc').value,
+    changeType: document.getElementById('designType').value,
+    impact: document.getElementById('designImpact').value,
+  };
+  if (editingDesignId) {
+    const updated = data.designChanges.map(c => c.id === editingDesignId ? { ...c, ...change, updatedAt: new Date().toISOString() } : c);
+    saveData({ designChanges: updated });
+    logActivity(data.currentUser.id, data.currentUser.name, 'update', 'design-change', editingDesignId, `Updated: ${change.title}`);
+    showToast('Change updated!', 'success');
+  } else {
+    const newChange = { id: generateId('design'), ...change, status: 'proposed', requestedBy: data.currentUser.id, requestedByName: data.currentUser.name, approvedBy: null, approvedByName: null, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() };
+    saveData({ designChanges: [...data.designChanges, newChange] });
+    logActivity(data.currentUser.id, data.currentUser.name, 'create', 'design-change', newChange.id, `Created: ${change.title}`);
+    showToast('Change created!', 'success');
+  }
+  closeDesignModal(); render();
+}
+function editDesignChange(id) { openDesignModal(id); }
+function deleteDesignChange(id) {
+  const data = getData();
+  const c = data.designChanges.find(x => x.id === id);
+  if (!confirm(`Delete "${c.title}"?`)) return;
+  const updated = data.designChanges.filter(x => x.id !== id);
+  saveData({ designChanges: updated });
+  logActivity(data.currentUser.id, data.currentUser.name, 'delete', 'design-change', id, `Deleted: ${c.title}`);
+  showToast('Change deleted', 'success'); render();
+}
+function approveDesignChange(id) {
+  const data = getData();
+  const updated = data.designChanges.map(c => c.id === id ? { ...c, status: 'approved', approvedBy: data.currentUser.id, approvedByName: data.currentUser.name, updatedAt: new Date().toISOString() } : c);
+  saveData({ designChanges: updated });
+  logActivity(data.currentUser.id, data.currentUser.name, 'approve', 'design-change', id, 'Approved change');
+  showToast('Change approved!', 'success'); render();
+}
+function exportDesignPDF() {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+  const data = getData();
+  doc.setFontSize(18); doc.text('Design Changes Report', 14, 20);
+  const tableData = data.designChanges.map(c => [c.title, c.projectName, c.changeType, c.status, c.impact, c.requestedByName, c.createdAt]);
+  doc.autoTable({ head: [['Title', 'Project', 'Type', 'Status', 'Impact', 'Requested By', 'Date']], body: tableData, startY: 30, styles: { fontSize: 9 }, headStyles: { fillColor: [37, 99, 235] } });
+  doc.save('design-changes.pdf');
+  showToast('PDF exported!', 'success');
+}
+
+// ===================== REPORTS =====================
+function renderReports() {
+  const data = getData();
+  const projects = data.projects;
+  const boilerTests = data.boilerTests;
+  const performances = data.productPerformances;
+  const designChanges = data.designChanges;
+  const reports = data.reports;
+  const activeTab = window.reportsTab || 'projects';
+  const statusFilter = window.reportStatusFilter || 'all';
+  const categoryFilter = window.reportCategoryFilter || 'all';
+
+  const filteredProjects = projects.filter(p => {
+    if (statusFilter !== 'all' && p.status !== statusFilter) return false;
+    if (categoryFilter !== 'all' && p.productCategory !== categoryFilter) return false;
+    return true;
+  });
+
+  const categories = [...new Set(projects.map(p => p.productCategory).filter(Boolean))];
+
+  const projectStats = {
+    total: filteredProjects.length,
+    avgProgress: filteredProjects.length > 0 ? Math.round(filteredProjects.reduce((a, b) => a + b.progress, 0) / filteredProjects.length) : 0,
+    byStatus: filteredProjects.reduce((acc, p) => { acc[p.status] = (acc[p.status] || 0) + 1; return acc; }, {}),
+    byPriority: filteredProjects.reduce((acc, p) => { acc[p.priority] = (acc[p.priority] || 0) + 1; return acc; }, {}),
+  };
+
+  const boilerStats = {
+    total: boilerTests.length,
+    avgEfficiency: boilerTests.length > 0 ? (boilerTests.reduce((a, b) => a + b.efficiency, 0) / boilerTests.length).toFixed(1) : 0,
+    passRate: boilerTests.length > 0 ? Math.round((boilerTests.filter(t => t.safetyValveTest && t.waterLevelControl && t.pressureGaugeTest && t.lowWaterCutoff && t.combustionTest).length / boilerTests.length) * 100) : 0,
+  };
+
+  const perfStats = {
+    total: performances.length,
+    avgEfficiency: performances.length > 0 ? (performances.reduce((a, b) => a + b.efficiency, 0) / performances.length).toFixed(1) : 0,
+    avgSatisfaction: performances.length > 0 ? (performances.reduce((a, b) => a + b.customerSatisfaction, 0) / performances.length).toFixed(1) : 0,
+  };
+
+  const designStats = {
+    total: designChanges.length,
+    proposed: designChanges.filter(c => c.status === 'proposed').length,
+    approved: designChanges.filter(c => c.status === 'approved').length,
+    implemented: designChanges.filter(c => c.status === 'implemented').length,
+  };
+
+  return `
+    <div class="space-y-6">
+      <div>
+        <h1 class="text-3xl font-bold text-slate-900">Reports</h1>
+        <p class="text-slate-500">Generate and export reports</p>
+      </div>
+
+      <div class="border-b border-slate-200">
+        <div class="flex gap-1">
+          <button onclick="window.reportsTab = 'projects'; render();" class="px-4 py-2 text-sm font-medium ${activeTab === 'projects' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-slate-500 hover:text-slate-700'}"><i class="fa-solid fa-folder-open mr-2"></i>Projects</button>
+          <button onclick="window.reportsTab = 'boiler'; render();" class="px-4 py-2 text-sm font-medium ${activeTab === 'boiler' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-slate-500 hover:text-slate-700'}"><i class="fa-solid fa-fire mr-2"></i>Boiler Tests</button>
+          <button onclick="window.reportsTab = 'performance'; render();" class="px-4 py-2 text-sm font-medium ${activeTab === 'performance' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-slate-500 hover:text-slate-700'}"><i class="fa-solid fa-chart-pie mr-2"></i>Performance</button>
+          <button onclick="window.reportsTab = 'design'; render();" class="px-4 py-2 text-sm font-medium ${activeTab === 'design' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-slate-500 hover:text-slate-700'}"><i class="fa-solid fa-pen-ruler mr-2"></i>Design Changes</button>
+        </div>
+      </div>
+
+      ${activeTab === 'projects' ? `
+        <div class="space-y-4">
+          <div class="flex gap-4">
+            <select onchange="window.reportStatusFilter = this.value; render();" class="px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+              <option value="all">All Statuses</option>
+              <option value="planning">Planning</option><option value="in-progress">In Progress</option><option value="testing">Testing</option><option value="completed">Completed</option><option value="on-hold">On Hold</option>
+            </select>
+            <select onchange="window.reportCategoryFilter = this.value; render();" class="px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+              <option value="all">All Categories</option>
+              ${categories.map(c => `<option value="${c}">${c}</option>`).join('')}
+            </select>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6"><div class="text-2xl font-bold text-slate-900">${projectStats.total}</div><p class="text-xs text-slate-400 mt-1">Total Projects</p></div>
+            <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6"><div class="text-2xl font-bold text-slate-900">${projectStats.avgProgress}%</div><p class="text-xs text-slate-400 mt-1">Avg Progress</p></div>
+            <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6"><div class="text-2xl font-bold text-slate-900">${projectStats.byStatus['completed'] || 0}</div><p class="text-xs text-slate-400 mt-1">Completed</p></div>
+            <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6"><div class="text-2xl font-bold text-slate-900">${projectStats.byPriority['critical'] || 0}</div><p class="text-xs text-slate-400 mt-1">Critical Priority</p></div>
+          </div>
+          <div class="flex gap-2">
+            <button onclick="exportProjectsPDF(); generateReport('project');" class="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700"><i class="fa-solid fa-file-pdf mr-2"></i>Export PDF</button>
+            <button onclick="exportProjectsExcel(); generateReport('project');" class="px-4 py-2 border border-slate-200 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-50"><i class="fa-solid fa-file-excel mr-2"></i>Export Excel</button>
+          </div>
+        </div>
+      ` : activeTab === 'boiler' ? `
+        <div class="space-y-4">
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6"><div class="text-2xl font-bold text-slate-900">${boilerStats.total}</div><p class="text-xs text-slate-400 mt-1">Total Tests</p></div>
+            <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6"><div class="text-2xl font-bold text-slate-900">${boilerStats.avgEfficiency}%</div><p class="text-xs text-slate-400 mt-1">Avg Efficiency</p></div>
+            <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6"><div class="text-2xl font-bold text-slate-900">${boilerStats.passRate}%</div><p class="text-xs text-slate-400 mt-1">Full Pass Rate</p></div>
+          </div>
+          <div class="flex gap-2">
+            <button onclick="exportBoilerPDF(); generateReport('boiler');" class="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700"><i class="fa-solid fa-file-pdf mr-2"></i>Export PDF</button>
+            <button onclick="exportBoilerExcel(); generateReport('boiler');" class="px-4 py-2 border border-slate-200 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-50"><i class="fa-solid fa-file-excel mr-2"></i>Export Excel</button>
+          </div>
+        </div>
+      ` : activeTab === 'performance' ? `
+        <div class="space-y-4">
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6"><div class="text-2xl font-bold text-slate-900">${perfStats.total}</div><p class="text-xs text-slate-400 mt-1">Products Tested</p></div>
+            <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6"><div class="text-2xl font-bold text-slate-900">${perfStats.avgEfficiency}%</div><p class="text-xs text-slate-400 mt-1">Avg Efficiency</p></div>
+            <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6"><div class="text-2xl font-bold text-slate-900">${perfStats.avgSatisfaction}%</div><p class="text-xs text-slate-400 mt-1">Avg Satisfaction</p></div>
+          </div>
+          <button onclick="exportPerfPDF(); generateReport('performance');" class="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700"><i class="fa-solid fa-file-pdf mr-2"></i>Export PDF</button>
+        </div>
+      ` : `
+        <div class="space-y-4">
+          <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6"><div class="text-2xl font-bold text-slate-900">${designStats.total}</div><p class="text-xs text-slate-400 mt-1">Total Changes</p></div>
+            <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6"><div class="text-2xl font-bold text-slate-900">${designStats.proposed}</div><p class="text-xs text-slate-400 mt-1">Proposed</p></div>
+            <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6"><div class="text-2xl font-bold text-slate-900">${designStats.approved}</div><p class="text-xs text-slate-400 mt-1">Approved</p></div>
+            <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6"><div class="text-2xl font-bold text-slate-900">${designStats.implemented}</div><p class="text-xs text-slate-400 mt-1">Implemented</p></div>
+          </div>
+          <button onclick="exportDesignPDF(); generateReport('design');" class="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700"><i class="fa-solid fa-file-pdf mr-2"></i>Export PDF</button>
+        </div>
+      `}
+
+      <!-- Reports History -->
+      <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+        <h2 class="text-lg font-semibold text-slate-900 mb-4">Generated Reports</h2>
+        ${reports.length === 0 ? '<p class="text-sm text-slate-400">No reports generated yet.</p>' : `
+          <div class="space-y-2">
+            ${reports.slice(0, 20).map(r => `
+              <div class="flex items-center justify-between p-3 border border-slate-100 rounded-lg">
+                <div class="flex items-center gap-3">
+                  <i class="fa-solid fa-file-lines text-blue-500"></i>
+                  <div>
+                    <p class="text-sm font-medium text-slate-900">${r.title}</p>
+                    <p class="text-xs text-slate-400">By ${r.generatedByName} — ${new Date(r.generatedAt).toLocaleString()}</p>
+                  </div>
+                </div>
+                <span class="text-[10px] px-2 py-0.5 rounded-full border border-slate-200">${r.type}</span>
+              </div>
+            `).join('')}
+          </div>
+        `}
+      </div>
+    </div>
+  `;
+}
+
+function generateReport(type) {
+  const data = getData();
+  const report = { id: generateId('report'), title: `${type.charAt(0).toUpperCase() + type.slice(1)} Report — ${new Date().toLocaleDateString()}`, type, filters: {}, generatedAt: new Date().toISOString(), generatedBy: data.currentUser.id, generatedByName: data.currentUser.name, data: {} };
+  saveData({ reports: [report, ...data.reports] });
+  logActivity(data.currentUser.id, data.currentUser.name, 'generate', 'report', report.id, `Generated ${type} report`);
+}
+
+
+// ===================== ACTIVITY =====================
+function renderActivity() {
+  const data = getData();
+  const logs = data.activityLogs;
+  const users = data.users;
+  const search = window.activitySearch || '';
+
+  const filtered = logs.filter(l =>
+    l.userName.toLowerCase().includes(search.toLowerCase()) ||
+    l.action.toLowerCase().includes(search.toLowerCase()) ||
+    l.details.toLowerCase().includes(search.toLowerCase())
+  );
+
+  const loginStats = users.map(u => ({
+    name: u.name, email: u.email, loginCount: u.loginCount,
+    lastLogin: u.lastLogin, role: u.role, status: u.status
+  })).sort((a, b) => b.loginCount - a.loginCount);
+
+  const actionColors = {
+    login: 'bg-green-100 text-green-700', logout: 'bg-gray-100 text-gray-700',
+    create: 'bg-blue-100 text-blue-700', update: 'bg-yellow-100 text-yellow-700',
+    delete: 'bg-red-100 text-red-700', comment: 'bg-purple-100 text-purple-700',
+    check: 'bg-teal-100 text-teal-700', approve: 'bg-green-100 text-green-700',
+    import: 'bg-orange-100 text-orange-700', generate: 'bg-indigo-100 text-indigo-700'
+  };
+
+  return `
+    <div class="space-y-6">
+      <div>
+        <h1 class="text-3xl font-bold text-slate-900">Activity & Login Tracking</h1>
+        <p class="text-slate-500">Monitor user activity and login frequency</p>
+      </div>
+
+      <!-- Login Stats -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        ${loginStats.slice(0, 8).map(u => `
+          <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+            <div class="flex items-center gap-3">
+              ${renderUserAvatar(u, 'h-10 w-10')}
+              <div class="flex-1 min-w-0">
+                <p class="text-sm font-medium text-slate-900 truncate">${u.name}</p>
+                <p class="text-xs text-slate-400">${u.email}</p>
+              </div>
+            </div>
+            <div class="mt-3 flex items-center gap-4">
+              <div class="flex items-center gap-1">
+                <i class="fa-solid fa-right-to-bracket text-slate-400 text-xs"></i>
+                <span class="text-sm font-bold text-slate-900">${u.loginCount}</span>
+              </div>
+              <div class="flex items-center gap-1">
+                <i class="fa-solid fa-clock text-slate-400 text-xs"></i>
+                <span class="text-xs text-slate-400">${u.lastLogin ? new Date(u.lastLogin).toLocaleDateString() : 'Never'}</span>
+              </div>
+            </div>
+            <div class="mt-2 flex gap-1">
+              <span class="text-[10px] px-2 py-0.5 rounded-full border border-slate-200">${roleLabel(u.role)}</span>
+              <span class="text-[10px] px-2 py-0.5 rounded-full ${u.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'}">${u.status}</span>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+
+      <!-- Activity Log -->
+      <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+        <h2 class="text-lg font-semibold text-slate-900 mb-4 flex items-center gap-2">
+          <i class="fa-solid fa-clock-rotate-left"></i>Activity Log
+        </h2>
+        <div class="relative max-w-sm mb-4">
+          <i class="fa-solid fa-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+          <input type="text" placeholder="Search activity..." value="${search}" 
+            class="w-full pl-9 pr-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            oninput="window.activitySearch = this.value; render();">
+        </div>
+        <div class="space-y-2 max-h-[500px] overflow-y-auto">
+          ${filtered.length === 0 ? '<p class="text-sm text-slate-400">No activity found.</p>' : filtered.map(l => `
+            <div class="flex items-start gap-3 p-3 border border-slate-100 rounded-lg hover:bg-slate-50 transition-colors">
+              <div class="mt-0.5">
+                <span class="text-[10px] px-2 py-0.5 rounded-full font-medium ${actionColors[l.action] || 'bg-gray-100 text-gray-700'}">${l.action}</span>
+              </div>
+              <div class="flex-1 min-w-0">
+                <p class="text-sm font-medium text-slate-900">${l.userName}</p>
+                <p class="text-sm text-slate-500">${l.details}</p>
+                <p class="text-xs text-slate-400 mt-1">${new Date(l.timestamp).toLocaleString()} — ${l.entityType}</p>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+// ===================== SETTINGS =====================
+function renderSettings() {
+  const data = getData();
+  const currentUser = data.currentUser;
+
+  return `
+    <div class="space-y-6">
+      <div>
+        <h1 class="text-3xl font-bold text-slate-900">Settings</h1>
+        <p class="text-slate-500">Configure app settings and integrations</p>
+      </div>
+
+      <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+        <h2 class="text-lg font-semibold text-slate-900 mb-4 flex items-center gap-2">
+          <i class="fa-solid fa-database text-blue-500"></i>Kimi AI Integration
+        </h2>
+        <p class="text-sm text-slate-500 mb-4">Add your Moonshot Kimi API key to enable AI-powered document extraction.</p>
+        <div class="grid gap-2">
+          <label class="text-sm font-medium text-slate-700">API Key</label>
+          <div class="flex gap-2">
+            <input type="password" id="kimiApiKey" value="${localStorage.getItem('kimi_api_key') || ''}" placeholder="sk-..." class="flex-1 px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <button onclick="saveKimiKey()" class="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700">Save</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+        <h2 class="text-lg font-semibold text-slate-900 mb-4 flex items-center gap-2">
+          <i class="fa-solid fa-download text-blue-500"></i>Data Management
+        </h2>
+        <div class="flex items-center justify-between mb-4">
+          <div>
+            <p class="text-sm font-medium text-slate-900">Export All Data</p>
+            <p class="text-xs text-slate-400">Download a complete backup of all your data</p>
+          </div>
+          <button onclick="exportAllData()" class="px-4 py-2 border border-slate-200 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-50">
+            <i class="fa-solid fa-download mr-2"></i>Export JSON
+          </button>
+        </div>
+        <div class="border-t border-slate-100 pt-4 flex items-center justify-between">
+          <div>
+            <p class="text-sm font-medium text-red-600">Reset All Data</p>
+            <p class="text-xs text-slate-400">This will permanently delete all data. Cannot be undone.</p>
+          </div>
+          <button onclick="resetAllData()" class="px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700">
+            <i class="fa-solid fa-trash mr-2"></i>Reset Data
+          </button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function saveKimiKey() {
+  const key = document.getElementById('kimiApiKey').value;
+  localStorage.setItem('kimi_api_key', key);
+  const data = getData();
+  logActivity(data.currentUser.id, data.currentUser.name, 'update', 'settings', 'api-key', 'Updated Kimi API key');
+  showToast('API key saved!', 'success');
+}
+
+function exportAllData() {
+  const data = getData();
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `plenser-data-${new Date().toISOString().split('T')[0]}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  logActivity(data.currentUser.id, data.currentUser.name, 'export', 'data', 'all', 'Exported all data');
+  showToast('Data exported!', 'success');
+}
+
+function resetAllData() {
+  if (!confirm('Are you sure? This will delete ALL data permanently!')) return;
+  localStorage.removeItem(STORAGE_KEY);
+  localStorage.removeItem('kimi_api_key');
+  window.location.reload();
+}
+
+// ===================== LISTENER ATTACHMENT =====================
+function attachPageListeners() {
+  if (state.page === 'performance') {
+    setTimeout(() => initCharts(), 100);
+  }
+}
+
+// ===================== INIT =====================
+document.addEventListener('DOMContentLoaded', () => {
+  const data = getData();
+  if (data.currentUser) {
+    setState({ page: 'dashboard', currentUser: data.currentUser });
+  } else {
+    render();
+  }
+});
+</script>
+</body>
+</html>
