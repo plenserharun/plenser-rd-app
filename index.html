@@ -481,7 +481,9 @@ const defaultData = {
   "inventions": [],
   "whatsappGroups": [],
   "notifications": [],
-  "projectBudgets": []
+  "projectBudgets": [],
+  "phaseApprovals": [],
+  "testForms": []
 };
 
 // ===================== ENHANCED PLENSER MODULES =====================
@@ -513,7 +515,9 @@ const ENHANCED_COLLECTION_DEFAULTS = {
   inventions: [],
   whatsappGroups: [],
   notifications: [],
-  projectBudgets: []
+  projectBudgets: [],
+  phaseApprovals: [],
+  testForms: []
 };
 
 const PLENSER_PRODUCT_LINES = [
@@ -626,9 +630,11 @@ function ensureEnhancedData(data) {
     }));
   }
   if (Array.isArray(merged.users)) {
-    merged.users = merged.users.map(user => ({ avatar: null, ...user }));
+    merged.users = merged.users.map(user => ({ avatar: null, approvalRights: [], ...user }));
   }
   if (!merged.settings || typeof merged.settings !== 'object') merged.settings = {};
+  if (!Array.isArray(merged.phaseApprovals)) merged.phaseApprovals = [];
+  if (!Array.isArray(merged.testForms)) merged.testForms = [];
   return merged;
 }
 
@@ -648,6 +654,55 @@ function escapeHtml(value) {
 function projectName(projectId) {
   const project = getData().projects.find(p => p.id === projectId);
   return project ? project.name : 'Unassigned';
+}
+
+function hasApprovedBudget(projectId) {
+  const data = getData();
+  return (data.projectBudgets || []).some(budget =>
+    budget.projectId === projectId &&
+    budget.type === 'Approved Budget' &&
+    budget.approvalStatus === 'approved' &&
+    Array.isArray(budget.files) &&
+    budget.files.length > 0
+  );
+}
+
+function canApprovePhase(user, phase = 'design-to-planning') {
+  return user?.role === 'admin' || (user?.approvalRights || []).includes(phase);
+}
+
+function getApprovedBudget(projectId) {
+  const data = getData();
+  return (data.projectBudgets || []).find(budget =>
+    budget.projectId === projectId &&
+    budget.type === 'Approved Budget' &&
+    budget.approvalStatus === 'approved' &&
+    Array.isArray(budget.files) &&
+    budget.files.length > 0
+  );
+}
+
+function getPhaseApproval(projectId, phase = 'design-to-planning') {
+  const data = getData();
+  return (data.phaseApprovals || []).find(approval => approval.projectId === projectId && approval.phase === phase);
+}
+
+function hasUploadedTestForms(projectId) {
+  const data = getData();
+  return (data.testForms || []).some(form => form.projectId === projectId && Array.isArray(form.files) && form.files.length > 0);
+}
+
+function projectStatusLabel(status) {
+  const labels = {
+    'design-stage': 'Design Stage',
+    approval: 'Approval',
+    planning: 'Planning',
+    'in-progress': 'In Progress',
+    testing: 'Testing',
+    completed: 'Completed',
+    'on-hold': 'On Hold'
+  };
+  return labels[status] || status;
 }
 
 function formatBytes(bytes = 0) {
@@ -723,6 +778,7 @@ function downloadStoredFile(fileId) {
   const pools = [
     ...data.designFiles,
     ...(data.projectBudgets || []).flatMap(budget => budget.files || []),
+    ...(data.testForms || []).flatMap(form => form.files || []),
     ...data.siteReports.flatMap(report => [...(report.photos || []), ...(report.pdfs || [])]),
     ...data.inventions.flatMap(item => [...(item.documents || []), ...(item.photos || []), ...(item.drawings || [])])
   ];
@@ -810,7 +866,7 @@ function renderProjectBudgets() {
   const total = budgets.reduce((sum, budget) => sum + Number(budget.amount || 0), 0);
   return `
     <div class="space-y-6">
-      ${renderPageHeader('Project Budgets', 'Upload budget files and tie every budget record to a specified project.', 'fa-money-check-dollar')}
+      ${renderPageHeader('Project Budgets', 'Upload budgets tied to projects. An authorized user must approve the uploaded budget before the project can move from Approval to Planning.', 'fa-money-check-dollar')}
       <div class="grid gap-4 md:grid-cols-3">
         <div class="bg-white rounded-xl border border-slate-200 p-5"><p class="text-xs text-slate-400">Budget Records</p><p class="text-2xl font-bold">${budgets.length}</p></div>
         <div class="bg-white rounded-xl border border-slate-200 p-5"><p class="text-xs text-slate-400">Total Budget</p><p class="text-2xl font-bold">${total.toLocaleString()}</p></div>
@@ -820,7 +876,7 @@ function renderProjectBudgets() {
         <h2 class="text-lg font-semibold text-slate-900 mb-4">Upload Budget</h2>
         <div class="grid gap-4 md:grid-cols-3">
           <div><label class="block text-sm font-medium text-slate-700 mb-1">Project</label><select id="budgetProject" class="w-full px-3 py-2 border border-slate-200 rounded-lg">${projectOptions()}</select></div>
-          <div><label class="block text-sm font-medium text-slate-700 mb-1">Budget Type</label><select id="budgetType" class="w-full px-3 py-2 border border-slate-200 rounded-lg"><option>Estimate</option><option>Approved Budget</option><option>Revision</option><option>Variation</option><option>Final Cost</option></select></div>
+          <div><label class="block text-sm font-medium text-slate-700 mb-1">Budget Type</label><select id="budgetType" class="w-full px-3 py-2 border border-slate-200 rounded-lg"><option>Estimate</option><option selected>Approved Budget</option><option>Revision</option><option>Variation</option><option>Final Cost</option></select></div>
           <div><label class="block text-sm font-medium text-slate-700 mb-1">Amount</label><input id="budgetAmount" type="number" step="0.01" class="w-full px-3 py-2 border border-slate-200 rounded-lg" placeholder="0.00"></div>
           <div><label class="block text-sm font-medium text-slate-700 mb-1">Currency</label><input id="budgetCurrency" class="w-full px-3 py-2 border border-slate-200 rounded-lg" value="KES"></div>
           <div class="md:col-span-2"><label class="block text-sm font-medium text-slate-700 mb-1">Budget Files</label><input id="budgetFiles" type="file" multiple accept=".pdf,.xlsx,.xls,.csv,.jpg,.jpeg,.png,.webp" class="w-full px-3 py-2 border border-slate-200 rounded-lg"></div>
@@ -836,9 +892,13 @@ function renderProjectBudgets() {
               <div>
                 <p class="font-semibold text-slate-900">${escapeHtml(projectName(budget.projectId))}</p>
                 <p class="text-sm text-slate-500">${escapeHtml(budget.type)} - ${escapeHtml(budget.currency)} ${Number(budget.amount || 0).toLocaleString()}</p>
+                <p class="text-xs mt-1 ${budget.approvalStatus === 'approved' ? 'text-green-600' : 'text-amber-600'}">${budget.approvalStatus === 'approved' ? `Approved by ${escapeHtml(budget.approvedByName || 'Approver')}` : 'Pending budget approval'}</p>
                 <p class="text-sm text-slate-500">${escapeHtml(budget.notes)}</p>
               </div>
-              <span class="text-xs text-slate-400">${new Date(budget.createdAt).toLocaleDateString()}</span>
+              <div class="text-right">
+                <span class="text-xs text-slate-400">${new Date(budget.createdAt).toLocaleDateString()}</span>
+                ${budget.type === 'Approved Budget' && budget.approvalStatus !== 'approved' && canApprovePhase(data.currentUser) ? `<button onclick="approveProjectBudget('${budget.id}')" class="block mt-2 px-3 py-1.5 rounded-lg bg-green-600 text-white text-xs font-medium hover:bg-green-700">Approve Budget</button>` : ''}
+              </div>
             </div>
             <div class="mt-3 flex flex-wrap gap-2">
               ${(budget.files || []).map(file => `<button onclick="downloadStoredFile('${file.id}')" class="text-xs px-3 py-1.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50"><i class="fa-solid fa-download mr-1"></i>${escapeHtml(file.name)} (${formatBytes(file.size)})</button>`).join('')}
@@ -862,12 +922,38 @@ async function saveProjectBudget() {
     currency: document.getElementById('budgetCurrency').value || 'KES',
     notes: document.getElementById('budgetNotes').value,
     files,
+    approvalStatus: 'pending',
+    approvedBy: null,
+    approvedByName: null,
+    approvedAt: null,
     createdBy: data.currentUser.id,
+    createdByName: data.currentUser.name,
     createdAt: new Date().toISOString()
   };
   saveData({ projectBudgets: [budget, ...(data.projectBudgets || [])] });
   logActivity(data.currentUser.id, data.currentUser.name, 'upload', 'project-budget', budget.projectId, `Uploaded budget for ${projectName(budget.projectId)}`);
   showToast('Project budget uploaded', 'success');
+  render();
+}
+
+function approveProjectBudget(budgetId) {
+  const data = getData();
+  if (!canApprovePhase(data.currentUser)) {
+    showToast('You do not have approval rights for project phase approvals.', 'error');
+    return;
+  }
+  const budget = (data.projectBudgets || []).find(item => item.id === budgetId);
+  if (!budget) return showToast('Budget not found', 'error');
+  const updatedBudgets = (data.projectBudgets || []).map(item => item.id === budgetId ? {
+    ...item,
+    approvalStatus: 'approved',
+    approvedBy: data.currentUser.id,
+    approvedByName: data.currentUser.name,
+    approvedAt: new Date().toISOString()
+  } : item);
+  saveData({ projectBudgets: updatedBudgets });
+  logActivity(data.currentUser.id, data.currentUser.name, 'approve', 'project-budget', budget.projectId, `Approved budget for ${projectName(budget.projectId)}`);
+  showToast('Budget approved', 'success');
   render();
 }
 
@@ -891,6 +977,63 @@ function renderProductLineSummary() {
       </div>
     </div>
   `;
+}
+
+function renderTestingForms() {
+  const data = getData();
+  const forms = data.testForms || [];
+  return `
+    <div class="space-y-6">
+      ${renderPageHeader('Testing Forms', 'Upload the required forms and reports for projects entering the Testing phase.', 'fa-clipboard-check')}
+      <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+        <h2 class="text-lg font-semibold text-slate-900 mb-4">Upload Test Forms</h2>
+        <div class="grid gap-4 md:grid-cols-3">
+          <div><label class="block text-sm font-medium text-slate-700 mb-1">Project</label><select id="testFormProject" class="w-full px-3 py-2 border border-slate-200 rounded-lg">${projectOptions()}</select></div>
+          <div><label class="block text-sm font-medium text-slate-700 mb-1">Test Type</label><select id="testFormType" class="w-full px-3 py-2 border border-slate-200 rounded-lg"><option>Boiler Test</option><option>Performance Test</option><option>Pressure Test</option><option>Emission Test</option><option>Quality Check</option><option>Commissioning Test</option></select></div>
+          <div><label class="block text-sm font-medium text-slate-700 mb-1">Files</label><input id="testFormFiles" type="file" multiple accept=".pdf,.xlsx,.xls,.csv,.jpg,.jpeg,.png,.webp" class="w-full px-3 py-2 border border-slate-200 rounded-lg"></div>
+          <div class="md:col-span-3"><label class="block text-sm font-medium text-slate-700 mb-1">Notes</label><textarea id="testFormNotes" rows="2" class="w-full px-3 py-2 border border-slate-200 rounded-lg" placeholder="Test form reference, result notes, witness, or acceptance details"></textarea></div>
+        </div>
+        <button onclick="saveTestingForms()" class="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700"><i class="fa-solid fa-upload mr-2"></i>Save Test Forms</button>
+      </div>
+      <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+        <h2 class="text-lg font-semibold text-slate-900 mb-4">Uploaded Test Forms</h2>
+        ${forms.length === 0 ? renderEmptyState('No testing forms uploaded yet.') : forms.map(form => `
+          <div class="border border-slate-100 rounded-lg p-4 mb-3">
+            <div class="flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
+              <div>
+                <p class="font-semibold text-slate-900">${escapeHtml(projectName(form.projectId))}</p>
+                <p class="text-sm text-slate-500">${escapeHtml(form.testType)} - ${escapeHtml(form.notes)}</p>
+                <p class="text-xs text-slate-400">Uploaded by ${escapeHtml(form.createdByName || 'User')} on ${new Date(form.createdAt).toLocaleDateString()}</p>
+              </div>
+            </div>
+            <div class="mt-3 flex flex-wrap gap-2">
+              ${(form.files || []).map(file => `<button onclick="downloadStoredFile('${file.id}')" class="text-xs px-3 py-1.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50"><i class="fa-solid fa-download mr-1"></i>${escapeHtml(file.name)} (${formatBytes(file.size)})</button>`).join('')}
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `;
+}
+
+async function saveTestingForms() {
+  const files = await readSelectedFiles('testFormFiles', ['pdf', 'xlsx', 'xls', 'csv', 'jpg', 'jpeg', 'png', 'webp']);
+  if (!files || files.length === 0) return showToast('Choose at least one test form file', 'error');
+  const data = getData();
+  const form = {
+    id: generateId('testform'),
+    projectId: document.getElementById('testFormProject').value,
+    testType: document.getElementById('testFormType').value,
+    notes: document.getElementById('testFormNotes').value,
+    files,
+    createdBy: data.currentUser.id,
+    createdByName: data.currentUser.name,
+    createdAt: new Date().toISOString()
+  };
+  saveData({ testForms: [form, ...(data.testForms || [])] });
+  logActivity(data.currentUser.id, data.currentUser.name, 'upload', 'testing-form', form.projectId, `Uploaded ${form.testType} form(s) for ${projectName(form.projectId)}`);
+  showToast('Testing forms uploaded', 'success');
+  render();
 }
 
 async function saveDesignFiles() {
@@ -1507,7 +1650,7 @@ function renderDashboard() {
     highPriority: projects.filter(p => p.priority === 'critical' || p.priority === 'high').length
   };
 
-  const statusColors = { planning: 'bg-yellow-500', 'in-progress': 'bg-blue-500', testing: 'bg-purple-500', completed: 'bg-green-500', 'on-hold': 'bg-gray-500' };
+  const statusColors = { 'design-stage': 'bg-cyan-500', approval: 'bg-amber-500', planning: 'bg-yellow-500', 'in-progress': 'bg-blue-500', testing: 'bg-purple-500', completed: 'bg-green-500', 'on-hold': 'bg-gray-500' };
 
   // Gantt chart
   const dates = projects.flatMap(p => [new Date(p.startDate), new Date(p.endDate)]);
@@ -1619,7 +1762,7 @@ function renderDashboard() {
                 <div class="space-y-1">
                   <p class="text-sm font-medium text-slate-900">${p.name}</p>
                   <div class="flex items-center gap-2">
-                    <span class="text-[10px] px-2 py-0.5 rounded-full ${p.status === 'completed' ? 'bg-green-100 text-green-700' : p.status === 'in-progress' ? 'bg-blue-100 text-blue-700' : p.status === 'testing' ? 'bg-purple-100 text-purple-700' : 'bg-yellow-100 text-yellow-700'}">${p.status}</span>
+                    <span class="text-[10px] px-2 py-0.5 rounded-full ${p.status === 'completed' ? 'bg-green-100 text-green-700' : p.status === 'in-progress' ? 'bg-blue-100 text-blue-700' : p.status === 'testing' ? 'bg-purple-100 text-purple-700' : p.status === 'approval' ? 'bg-amber-100 text-amber-700' : p.status === 'design-stage' ? 'bg-cyan-100 text-cyan-700' : 'bg-yellow-100 text-yellow-700'}">${projectStatusLabel(p.status)}</span>
                     <span class="text-xs text-slate-400">${p.progress}%</span>
                   </div>
                 </div>
@@ -1683,6 +1826,8 @@ function renderProjects() {
   const isAdmin = currentUser?.role === 'admin';
 
   const statusColors = {
+    'design-stage': 'bg-cyan-100 text-cyan-700',
+    approval: 'bg-amber-100 text-amber-700',
     planning: 'bg-yellow-100 text-yellow-700',
     'in-progress': 'bg-blue-100 text-blue-700',
     testing: 'bg-purple-100 text-purple-700',
@@ -1726,6 +1871,8 @@ function renderProjects() {
         <select id="projectStatusFilter" onchange="window.projectStatusFilter = this.value; render();" 
           class="px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
           <option value="all">All Statuses</option>
+          <option value="design-stage">Design Stage</option>
+          <option value="approval">Approval</option>
           <option value="planning">Planning</option>
           <option value="in-progress">In Progress</option>
           <option value="testing">Testing</option>
@@ -1752,7 +1899,7 @@ function renderProjects() {
               </div>
             </div>
             <div class="flex gap-2 mb-3 flex-wrap">
-              <span class="text-[10px] px-2 py-0.5 rounded-full font-medium ${statusColors[p.status]}">${p.status}</span>
+                <span class="text-[10px] px-2 py-0.5 rounded-full font-medium ${statusColors[p.status] || 'bg-slate-100 text-slate-700'}">${projectStatusLabel(p.status)}</span>
               <span class="text-[10px] px-2 py-0.5 rounded-full font-medium ${priorityColors[p.priority]}">${p.priority}</span>
             </div>
             <p class="text-sm text-slate-500 mb-3 line-clamp-2">${p.description}</p>
@@ -1808,7 +1955,7 @@ function renderProjects() {
             <div>
               <label class="block text-sm font-medium text-slate-700 mb-1">Status</label>
               <select id="projStatus" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-                <option value="planning">Planning</option><option value="in-progress">In Progress</option><option value="testing">Testing</option><option value="completed">Completed</option><option value="on-hold">On Hold</option>
+                <option value="design-stage">Design Stage</option><option value="approval">Approval</option><option value="planning">Planning</option><option value="in-progress">In Progress</option><option value="testing">Testing</option><option value="completed">Completed</option><option value="on-hold">On Hold</option>
               </select>
             </div>
             <div>
@@ -1876,7 +2023,7 @@ function openProjectModal(projectId = null) {
     title.textContent = 'New Project';
     document.getElementById('projName').value = '';
     document.getElementById('projDesc').value = '';
-    document.getElementById('projStatus').value = 'planning';
+    document.getElementById('projStatus').value = 'design-stage';
     document.getElementById('projPriority').value = 'medium';
     document.getElementById('projProgress').value = 0;
     document.getElementById('progVal').textContent = '0';
@@ -1905,6 +2052,24 @@ function saveProject() {
     endDate: document.getElementById('projEnd').value,
     productCategory: document.getElementById('projCategory').value,
   };
+
+  const existingProject = editingProjectId ? data.projects.find(p => p.id === editingProjectId) : null;
+
+  if (project.status === 'planning' && editingProjectId && existingProject?.status !== 'planning' && existingProject?.status !== 'approval') {
+    showToast('Move the project to Approval before moving it to Planning.', 'error');
+    return;
+  }
+
+  if (project.status === 'planning' && editingProjectId && !hasApprovedBudget(editingProjectId)) {
+    showToast('Upload an Approved Budget for this project before moving to Planning.', 'error');
+    navigate('projectBudgets');
+    return;
+  }
+
+  if (project.status === 'planning' && !editingProjectId) {
+    showToast('Create the project first, upload an Approved Budget, then move it to Planning.', 'error');
+    return;
+  }
 
   if (editingProjectId) {
     const updated = data.projects.map(p => p.id === editingProjectId ? { ...p, ...project, updatedAt: new Date().toISOString() } : p);
@@ -3216,7 +3381,7 @@ function renderReports() {
           <div class="flex gap-4">
             <select onchange="window.reportStatusFilter = this.value; render();" class="px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
               <option value="all">All Statuses</option>
-              <option value="planning">Planning</option><option value="in-progress">In Progress</option><option value="testing">Testing</option><option value="completed">Completed</option><option value="on-hold">On Hold</option>
+              <option value="design-stage">Design Stage</option><option value="approval">Approval</option><option value="planning">Planning</option><option value="in-progress">In Progress</option><option value="testing">Testing</option><option value="completed">Completed</option><option value="on-hold">On Hold</option>
             </select>
             <select onchange="window.reportCategoryFilter = this.value; render();" class="px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
               <option value="all">All Categories</option>

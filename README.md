@@ -30,3 +30,10 @@ If Vercel has old settings:
 Supabase:
 
 Run `supabase-schema.sql` in Supabase SQL Editor before using the app.
+
+Project workflow:
+
+- New projects start at `Design Stage`.
+- Move them to `Approval` after design review.
+- Upload an `Approved Budget` in Project Budgets.
+- Only then can the project move to `Planning`.
