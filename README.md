@@ -35,5 +35,9 @@ Project workflow:
 
 - New projects start at `Design Stage`.
 - Move them to `Approval` after design review.
+- Give selected users approval rights in Teams & Users.
 - Upload an `Approved Budget` in Project Budgets.
-- Only then can the project move to `Planning`.
+- An authorized user must approve that budget.
+- Only an authorized user can move the project from `Approval` to `Planning`.
+- The app logs who approved the phase move.
+- Before a project moves to `Testing`, testing forms must be uploaded in Testing Forms.

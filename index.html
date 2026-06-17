@@ -497,6 +497,7 @@ const ROLE_OPTIONS = [
   ['design-engineer', 'Design Engineer'],
   ['technicians', 'Technicians'],
   ['finance', 'Finance'],
+  ['procurement', 'Procurement'],
   ['viewer', 'Viewer'],
   ['technician', 'Technician'],
   ['site-supervisor', 'Site Supervisor'],
@@ -1410,6 +1411,7 @@ const routes = {
   technicalDocuments: renderTechnicalDocuments,
   projectPhotos: renderProjectPhotos,
   projectBudgets: renderProjectBudgets,
+  testingForms: renderTestingForms,
   productLineSummary: renderProductLineSummary,
   projectAnalytics: renderProjectAnalytics,
   inventionAnalytics: renderInventionAnalytics,
@@ -1537,6 +1539,7 @@ function renderSidebar() {
       { name: 'Air Pollution Systems', page: 'airPollutionSystems', icon: 'fa-wind' },
       { name: 'Heat Recovery Systems', page: 'heatRecoverySystems', icon: 'fa-temperature-arrow-up' },
       { name: 'New Inventions', page: 'inventions', icon: 'fa-lightbulb' },
+      { name: 'Testing Forms', page: 'testingForms', icon: 'fa-clipboard-check' },
       { name: 'Boiler Tests', page: 'boilerTests', icon: 'fa-fire' },
       { name: 'Performance', page: 'performance', icon: 'fa-chart-pie' },
       { name: 'Design Changes', page: 'designChanges', icon: 'fa-pen-ruler' },
@@ -1916,6 +1919,18 @@ function renderProjects() {
               <span>${p.startDate}</span>
               <span>${p.endDate}</span>
             </div>
+            ${getPhaseApproval(p.id) ? `
+              <div class="rounded-lg bg-green-50 border border-green-100 p-2 mb-3 text-xs text-green-700">
+                <i class="fa-solid fa-circle-check mr-1"></i>
+                ${escapeHtml(getPhaseApproval(p.id).approvedByName)} approved ${projectStatusLabel(getPhaseApproval(p.id).fromStatus)} to Planning on ${new Date(getPhaseApproval(p.id).approvedAt).toLocaleDateString()}
+              </div>
+            ` : ''}
+            ${p.status === 'testing' ? `
+              <div class="rounded-lg ${hasUploadedTestForms(p.id) ? 'bg-purple-50 border-purple-100 text-purple-700' : 'bg-red-50 border-red-100 text-red-700'} border p-2 mb-3 text-xs">
+                <i class="fa-solid fa-clipboard-check mr-1"></i>
+                ${hasUploadedTestForms(p.id) ? 'Testing forms uploaded' : 'Testing forms required'}
+              </div>
+            ` : ''}
             <div class="flex gap-2">
               <button onclick="addCheck('${p.id}')" class="flex-1 px-3 py-1.5 border border-slate-200 rounded-lg text-xs font-medium text-slate-600 hover:bg-slate-50">
                 <i class="fa-solid fa-check-circle mr-1"></i>Check
@@ -2060,9 +2075,20 @@ function saveProject() {
     return;
   }
 
+  if (project.status === 'planning' && editingProjectId && existingProject?.status !== 'planning' && !canApprovePhase(currentUser)) {
+    showToast('You do not have approval rights to move this project to Planning.', 'error');
+    return;
+  }
+
   if (project.status === 'planning' && editingProjectId && !hasApprovedBudget(editingProjectId)) {
-    showToast('Upload an Approved Budget for this project before moving to Planning.', 'error');
+    showToast('An authorized user must approve an uploaded Approved Budget before moving to Planning.', 'error');
     navigate('projectBudgets');
+    return;
+  }
+
+  if (project.status === 'testing' && editingProjectId && existingProject?.status !== 'testing' && !hasUploadedTestForms(editingProjectId)) {
+    showToast('Upload the required testing forms before moving this project to Testing.', 'error');
+    navigate('testingForms');
     return;
   }
 
@@ -2072,8 +2098,23 @@ function saveProject() {
   }
 
   if (editingProjectId) {
+    const approvedBudget = getApprovedBudget(editingProjectId);
+    const newPhaseApproval = project.status === 'planning' && existingProject?.status !== 'planning' ? {
+      id: generateId('approval'),
+      projectId: editingProjectId,
+      phase: 'design-to-planning',
+      fromStatus: existingProject?.status || null,
+      toStatus: 'planning',
+      approvedBudgetId: approvedBudget?.id || null,
+      approvedBy: currentUser.id,
+      approvedByName: currentUser.name,
+      approvedAt: new Date().toISOString()
+    } : null;
     const updated = data.projects.map(p => p.id === editingProjectId ? { ...p, ...project, updatedAt: new Date().toISOString() } : p);
-    saveData({ projects: updated });
+    saveData({ projects: updated, phaseApprovals: newPhaseApproval ? [newPhaseApproval, ...(data.phaseApprovals || [])] : (data.phaseApprovals || []) });
+    if (newPhaseApproval) {
+      logActivity(currentUser.id, currentUser.name, 'approve', 'project-phase', editingProjectId, `Approved ${project.name} from Design/Approval to Planning using approved budget`);
+    }
     logActivity(currentUser.id, currentUser.name, 'update', 'project', editingProjectId, `Updated project: ${project.name}`);
     showToast('Project updated!', 'success');
   } else {
@@ -2228,6 +2269,7 @@ function renderTeams() {
                   ${team ? `<p class="text-sm text-slate-500">Team: ${team.name}</p>` : ''}
                   <p class="text-xs text-slate-400">Logins: ${u.loginCount}</p>
                   <p class="text-xs text-slate-400">Last login: ${u.lastLogin ? new Date(u.lastLogin).toLocaleDateString() : 'Never'}</p>
+                  ${(u.approvalRights || []).includes('design-to-planning') ? `<p class="text-xs text-green-600 mt-1"><i class="fa-solid fa-circle-check mr-1"></i>Can approve design-to-planning</p>` : ''}
                   ${isAdmin ? `<button onclick="openPasswordModal('${u.id}')" class="w-full mt-2 px-3 py-1.5 border border-slate-200 rounded-lg text-xs font-medium text-slate-600 hover:bg-slate-50">
                     <i class="fa-solid fa-key mr-1"></i>Change Password
                   </button>` : ''}
@@ -2311,6 +2353,13 @@ function renderTeams() {
                 <option value="active">Active</option><option value="inactive">Inactive</option><option value="pending">Pending</option>
               </select>
             </div>
+            <div class="rounded-lg border border-slate-200 p-3">
+              <label class="flex items-center gap-2 text-sm font-medium text-slate-700">
+                <input type="checkbox" id="approvalDesignPlanning" class="rounded">
+                <span>Can approve design phase, budgets, and move projects to planning</span>
+              </label>
+              <p class="text-xs text-slate-400 mt-1">Admins always have this right.</p>
+            </div>
           </div>
           <div class="flex justify-end gap-2 mt-6">
             <button onclick="closeUserModal()" class="px-4 py-2 border border-slate-200 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-50">Cancel</button>
@@ -2379,6 +2428,7 @@ function openUserModal(userId = null) {
     document.getElementById('userRole').value = u.role;
     document.getElementById('userTeam').value = u.teamId || '';
     document.getElementById('userStatus').value = u.status;
+    document.getElementById('approvalDesignPlanning').checked = (u.approvalRights || []).includes('design-to-planning');
     document.getElementById('userPhotoPreview').innerHTML = u.avatar?.dataUrl ? `<img src="${u.avatar.dataUrl}" alt="${u.name}" class="h-full w-full object-cover">` : '<i class="fa-solid fa-user"></i>';
   } else {
     document.getElementById('userName').value = '';
@@ -2387,6 +2437,7 @@ function openUserModal(userId = null) {
     document.getElementById('userRole').value = 'engineer';
     document.getElementById('userTeam').value = '';
     document.getElementById('userStatus').value = 'active';
+    document.getElementById('approvalDesignPlanning').checked = false;
     document.getElementById('userPhotoPreview').innerHTML = '<i class="fa-solid fa-user"></i>';
   }
   document.getElementById('userPhoto')?.addEventListener('change', async () => {
@@ -2408,6 +2459,7 @@ async function saveUser() {
     role: document.getElementById('userRole').value,
     teamId: document.getElementById('userTeam').value || null,
     status: document.getElementById('userStatus').value,
+    approvalRights: document.getElementById('approvalDesignPlanning').checked ? ['design-to-planning'] : [],
   };
   if (editingUserId) {
     const updated = data.users.map(u => u.id === editingUserId ? { ...u, ...user, avatar: selectedPhoto || u.avatar || null, password: document.getElementById('userPassword').value || u.password } : u);
