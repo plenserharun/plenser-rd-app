@@ -557,7 +557,65 @@ const defaultData = {
   "notifications": [],
   "projectBudgets": [],
   "phaseApprovals": [],
-  "testForms": []
+  "testForms": [],
+  "boms": [
+    {
+      "id": "bom-1",
+      "projectId": "proj-1",
+      "projectName": "Eco-Boiler Prototype",
+      "designChangeId": "",
+      "designChangeTitle": "Approved Design",
+      "status": "approved",
+      "version": "1.0",
+      "items": [
+        { "id": "bom-1-1", "lineNumber": 1, "partNumber": "SS-PL-001", "description": "Stainless steel plate, 6mm", "quantity": 12, "unit": "sq.m", "material": "SS 304", "supplier": "Metals & Co.", "unitCost": 1250, "totalCost": 15000, "notes": "Cut to 1200x2400mm" },
+        { "id": "bom-1-2", "lineNumber": 2, "partNumber": "SS-PL-002", "description": "Stainless steel plate, 8mm", "quantity": 8, "unit": "sq.m", "material": "SS 304", "supplier": "Metals & Co.", "unitCost": 1650, "totalCost": 13200, "notes": "Cut to 1200x2400mm" },
+        { "id": "bom-1-3", "lineNumber": 3, "partNumber": "BLR-INS-001", "description": "Ceramic insulation blanket", "quantity": 5, "unit": "roll", "material": "Ceramic wool", "supplier": "Insulation Pro", "unitCost": 3400, "totalCost": 17000, "notes": "50mm x 10m rolls" },
+        { "id": "bom-1-4", "lineNumber": 4, "partNumber": "BLR-PIPE-001", "description": "DN50 seamless pipe", "quantity": 24, "unit": "m", "material": "SS 316L", "supplier": "Pipes Ltd", "unitCost": 420, "totalCost": 10080, "notes": "Schedule 40" },
+        { "id": "bom-1-5", "lineNumber": 5, "partNumber": "BLR-VAL-001", "description": "Safety relief valve 2.5 bar", "quantity": 2, "unit": "pcs", "material": "Cast steel", "supplier": "Valve World", "unitCost": 8500, "totalCost": 17000, "notes": "CE certified" },
+        { "id": "bom-1-6", "lineNumber": 6, "partNumber": "BLR-BRN-001", "description": "Low-NOx burner assembly", "quantity": 1, "unit": "set", "material": "Mixed", "supplier": "BurnerTech", "unitCost": 45000, "totalCost": 45000, "notes": "Includes control panel" },
+        { "id": "bom-1-7", "lineNumber": 7, "partNumber": "BLR-CTRL-001", "description": "PLC control module", "quantity": 1, "unit": "pcs", "material": "Electronics", "supplier": "Siemens", "unitCost": 28000, "totalCost": 28000, "notes": "S7-1200 series" },
+        { "id": "bom-1-8", "lineNumber": 8, "partNumber": "BLR-THRM-001", "description": "Thermocouple sensor", "quantity": 6, "unit": "pcs", "material": "K-type", "supplier": "Omega", "unitCost": 1800, "totalCost": 10800, "notes": "0-1200°C range" },
+        { "id": "bom-1-9", "lineNumber": 9, "partNumber": "BLR-PRSR-001", "description": "Pressure transmitter", "quantity": 4, "unit": "pcs", "material": "SS 316", "supplier": "Rosemount", "unitCost": 6500, "totalCost": 26000, "notes": "4-20mA output" },
+        { "id": "bom-1-10", "lineNumber": 10, "partNumber": "BLR-LV-001", "description": "Level indicator float", "quantity": 2, "unit": "pcs", "material": "SS 304", "supplier": "Wika", "unitCost": 3200, "totalCost": 6400, "notes": "Magnetic type" }
+      ],
+      "totalCost": 188480,
+      "createdBy": "admin-1",
+      "createdByName": "Admin User",
+      "createdAt": "2026-06-10T02:56:29.601Z",
+      "approvedBy": "user-1781073706859-jbbmfrvxj",
+      "approvedByName": "Moses Kamau",
+      "approvedAt": "2026-06-10T06:45:00.000Z"
+    },
+    {
+      "id": "bom-2",
+      "projectId": "proj-2",
+      "projectName": "Smart Control System",
+      "designChangeId": "",
+      "designChangeTitle": "Approved Design",
+      "status": "draft",
+      "version": "1.0",
+      "items": [
+        { "id": "bom-2-1", "lineNumber": 1, "partNumber": "CTRL-PCB-001", "description": "Main controller PCB", "quantity": 2, "unit": "pcs", "material": "FR4 PCB", "supplier": "PCB House", "unitCost": 12000, "totalCost": 24000, "notes": "4-layer, ENIG finish" },
+        { "id": "bom-2-2", "lineNumber": 2, "partNumber": "CTRL-ESP-001", "description": "ESP32 WiFi module", "quantity": 2, "unit": "pcs", "material": "Silicon", "supplier": "Espressif", "unitCost": 450, "totalCost": 900, "notes": "WROOM-32E" },
+        { "id": "bom-2-3", "lineNumber": 3, "partNumber": "CTRL-REL-001", "description": "Solid state relay, 25A", "quantity": 8, "unit": "pcs", "material": "Electronics", "supplier": "Omron", "unitCost": 1200, "totalCost": 9600, "notes": "DIN rail mount" },
+        { "id": "bom-2-4", "lineNumber": 4, "partNumber": "CTRL-TRN-001", "description": "Current transformer", "quantity": 6, "unit": "pcs", "material": "Copper", "supplier": "CT Mfg", "unitCost": 850, "totalCost": 5100, "notes": "100:5 ratio" },
+        { "id": "bom-2-5", "lineNumber": 5, "partNumber": "CTRL-HMI-001", "description": "7-inch touchscreen HMI", "quantity": 1, "unit": "pcs", "material": "Electronics", "supplier": "Weintek", "unitCost": 18500, "totalCost": 18500, "notes": "IP65 front panel" },
+        { "id": "bom-2-6", "lineNumber": 6, "partNumber": "CTRL-ENC-001", "description": "Enclosure IP65, 400x300x200", "quantity": 1, "unit": "pcs", "material": "Powder coated steel", "supplier": "Rittal", "unitCost": 8500, "totalCost": 8500, "notes": "With gland plate" },
+        { "id": "bom-2-7", "lineNumber": 7, "partNumber": "CTRL-PSU-001", "description": "24V DC power supply", "quantity": 1, "unit": "pcs", "material": "Electronics", "supplier": "Meanwell", "unitCost": 4200, "totalCost": 4200, "notes": "10A output" },
+        { "id": "bom-2-8", "lineNumber": 8, "partNumber": "CTRL-CAB-001", "description": "Control cable 4-core 1.5mm", "quantity": 50, "unit": "m", "material": "Copper/PVC", "supplier": "Nexans", "unitCost": 120, "totalCost": 6000, "notes": "Shielded, flexible" },
+        { "id": "bom-2-9", "lineNumber": 9, "partNumber": "CTRL-TERM-001", "description": "Spring terminal block", "quantity": 40, "unit": "pcs", "material": "Brass", "supplier": "Phoenix Contact", "unitCost": 45, "totalCost": 1800, "notes": "2.5mm²" },
+        { "id": "bom-2-10", "lineNumber": 10, "partNumber": "CTRL-FAN-001", "description": "Panel fan with filter", "quantity": 2, "unit": "pcs", "material": "Plastic", "supplier": "Pfannenberg", "unitCost": 3200, "totalCost": 6400, "notes": "120mm, 230V" }
+      ],
+      "totalCost": 85000,
+      "createdBy": "admin-1",
+      "createdByName": "Admin User",
+      "createdAt": "2026-06-10T02:56:29.601Z",
+      "approvedBy": null,
+      "approvedByName": null,
+      "approvedAt": null
+    }
+  ]
 };
 
 // ===================== ENHANCED PLENSER MODULES =====================
@@ -592,7 +650,8 @@ const ENHANCED_COLLECTION_DEFAULTS = {
   notifications: [],
   projectBudgets: [],
   phaseApprovals: [],
-  testForms: []
+  testForms: [],
+  boms: []
 };
 
 const PLENSER_PRODUCT_LINES = [
@@ -710,6 +769,7 @@ function ensureEnhancedData(data) {
   if (!merged.settings || typeof merged.settings !== 'object') merged.settings = {};
   if (!Array.isArray(merged.phaseApprovals)) merged.phaseApprovals = [];
   if (!Array.isArray(merged.testForms)) merged.testForms = [];
+  if (!Array.isArray(merged.boms)) merged.boms = [];
   return merged;
 }
 
@@ -1849,6 +1909,7 @@ const routes = {
   whatsappNotifications: renderWhatsAppNotifications,
   reports: renderReports,
   activity: renderActivity,
+  boms: renderBoms,
   settings: renderSettings
 };
 
@@ -1971,6 +2032,7 @@ function renderSidebar() {
       { name: 'Boiler Tests', page: 'boilerTests', icon: 'fa-fire' },
       { name: 'Performance', page: 'performance', icon: 'fa-chart-pie' },
       { name: 'Design Changes', page: 'designChanges', icon: 'fa-pen-ruler' },
+      { name: 'Bill of Materials', page: 'boms', icon: 'fa-list-check' },
     ]},
     { label: 'Site Management', items: [
       { name: 'Site Reports', page: 'siteReports', icon: 'fa-helmet-safety' },
@@ -4149,6 +4211,455 @@ document.addEventListener('DOMContentLoaded', async () => {
     showToast('Supabase connection failed', 'error');
   }
 });
+
+// ===================== BILL OF MATERIALS =====================
+function renderBoms() {
+  const data = getData();
+  const boms = data.boms || [];
+  const changes = data.designChanges || [];
+  const projects = data.projects || [];
+  const currentUser = data.currentUser;
+  const isAdmin = currentUser?.role === 'admin' || currentUser?.role === 'manager' || currentUser?.role === 'rd-manager';
+  const isProcurement = currentUser?.role === 'procurement' || currentUser?.role === 'finance';
+  const isEngineer = currentUser?.role === 'engineer' || currentUser?.role === 'design-engineer' || currentUser?.role === 'fabrication-engineer';
+  const canCreate = isAdmin || isEngineer;
+  const canApprove = isAdmin || isProcurement;
+
+  const projectFilter = window.bomProjectFilter || 'all';
+  const statusFilter = window.bomStatusFilter || 'all';
+  const search = window.bomSearch || '';
+
+  const filtered = boms.filter(bom => {
+    const matchesProject = projectFilter === 'all' || bom.projectId === projectFilter;
+    const matchesStatus = statusFilter === 'all' || bom.status === statusFilter;
+    const matchesSearch = !search || bom.projectName.toLowerCase().includes(search.toLowerCase()) || bom.items.some(i => i.description.toLowerCase().includes(search.toLowerCase()) || i.partNumber.toLowerCase().includes(search.toLowerCase()));
+    return matchesProject && matchesStatus && matchesSearch;
+  });
+
+  const selectedBomId = window.bomSelectedId || (filtered[0]?.id || '');
+  const selectedBom = boms.find(b => b.id === selectedBomId);
+
+  const approvedDesigns = changes.filter(c => c.status === 'approved');
+  const projectOptions = projects.map(p => `<option value="${p.id}">${escapeHtml(p.name)}</option>`).join('');
+  const designOptions = approvedDesigns.length ? approvedDesigns.map(c => `<option value="${c.id}">${escapeHtml(c.title)} (${c.projectName})</option>`).join('') : '<option value="">No approved designs</option>';
+
+  const statusColors = { draft: 'bg-slate-100 text-slate-600', submitted: 'bg-blue-100 text-blue-700', approved: 'bg-green-100 text-green-700', rejected: 'bg-red-100 text-red-700' };
+
+  return `
+    <div class="space-y-6">
+      ${renderPageHeader('Bill of Materials', 'Generate BOMs for approved designs. Track parts, quantities, materials, suppliers, and costs.', 'fa-list-check')}
+
+      <!-- Stats -->
+      <div class="grid gap-4 md:grid-cols-5">
+        <div class="bg-white rounded-xl border border-slate-200 p-5"><p class="text-xs text-slate-400">BOMs</p><p class="text-2xl font-bold">${boms.length}</p></div>
+        <div class="bg-white rounded-xl border border-slate-200 p-5"><p class="text-xs text-slate-400">Approved</p><p class="text-2xl font-bold">${boms.filter(b => b.status === 'approved').length}</p></div>
+        <div class="bg-white rounded-xl border border-slate-200 p-5"><p class="text-xs text-slate-400">Draft</p><p class="text-2xl font-bold">${boms.filter(b => b.status === 'draft').length}</p></div>
+        <div class="bg-white rounded-xl border border-slate-200 p-5"><p class="text-xs text-slate-400">Total Items</p><p class="text-2xl font-bold">${boms.reduce((s, b) => s + (b.items?.length || 0), 0)}</p></div>
+        <div class="bg-white rounded-xl border border-slate-200 p-5"><p class="text-xs text-slate-400">Total Value</p><p class="text-2xl font-bold">${boms.reduce((s, b) => s + (b.totalCost || 0), 0).toLocaleString()}</p></div>
+      </div>
+
+      <!-- Filters & Create -->
+      <div class="flex flex-col md:flex-row gap-3 items-start md:items-center justify-between">
+        <div class="flex flex-col sm:flex-row gap-2">
+          <select onchange="window.bomProjectFilter = this.value; render();" class="px-3 py-2 border border-slate-200 rounded-lg text-sm bg-white">
+            <option value="all">All Projects</option>
+            ${projects.map(p => `<option value="${p.id}" ${projectFilter === p.id ? 'selected' : ''}>${escapeHtml(p.name)}</option>`).join('')}
+          </select>
+          <select onchange="window.bomStatusFilter = this.value; render();" class="px-3 py-2 border border-slate-200 rounded-lg text-sm bg-white">
+            <option value="all">All Status</option>
+            <option value="draft" ${statusFilter === 'draft' ? 'selected' : ''}>Draft</option>
+            <option value="submitted" ${statusFilter === 'submitted' ? 'selected' : ''}>Submitted</option>
+            <option value="approved" ${statusFilter === 'approved' ? 'selected' : ''}>Approved</option>
+            <option value="rejected" ${statusFilter === 'rejected' ? 'selected' : ''}>Rejected</option>
+          </select>
+          <div class="relative">
+            <i class="fa-solid fa-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+            <input type="text" placeholder="Search BOM..." value="${search}" oninput="window.bomSearch = this.value; render();" class="pl-8 pr-3 py-2 border border-slate-200 rounded-lg text-sm w-48">
+          </div>
+        </div>
+        <div class="flex gap-2">
+          ${selectedBom ? `<button onclick="exportBOM('${selectedBom.id}')" class="px-3 py-2 border border-slate-200 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-50"><i class="fa-solid fa-file-pdf mr-2 text-red-500"></i>Export PDF</button>` : ''}
+          ${canCreate ? `<button onclick="openBomModal()" class="px-3 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700"><i class="fa-solid fa-plus mr-2"></i>New BOM</button>` : ''}
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- BOM List -->
+        <div class="lg:col-span-1 space-y-3">
+          ${filtered.length === 0 ? renderEmptyState('No BOMs found.') : filtered.map(bom => `
+            <div onclick="window.bomSelectedId = '${bom.id}'; render();" class="cursor-pointer bg-white rounded-xl border ${selectedBomId === bom.id ? 'border-blue-500 ring-1 ring-blue-500' : 'border-slate-200'} p-4 hover:shadow-sm transition-all">
+              <div class="flex items-start justify-between mb-2">
+                <h3 class="text-sm font-semibold text-slate-900 truncate">${escapeHtml(bom.projectName)}</h3>
+                <span class="text-[10px] px-2 py-0.5 rounded-full font-medium ${statusColors[bom.status] || 'bg-slate-100'}">${bom.status}</span>
+              </div>
+              <p class="text-xs text-slate-500 mb-1">${bom.items?.length || 0} items · ${(bom.totalCost || 0).toLocaleString()} total</p>
+              <p class="text-[10px] text-slate-400">Ver ${bom.version || '1.0'} · ${bom.createdByName || '—'}</p>
+              ${bom.approvedByName ? `<p class="text-[10px] text-green-600 mt-1"><i class="fa-solid fa-check-circle mr-1"></i>Approved by ${escapeHtml(bom.approvedByName)}</p>` : ''}
+            </div>
+          `).join('')}
+        </div>
+
+        <!-- BOM Detail -->
+        <div class="lg:col-span-2">
+          ${!selectedBom ? renderEmptyState('Select a BOM from the list to view details.') : `
+            <div class="bg-white rounded-xl border border-slate-200 shadow-sm">
+              <!-- BOM Header -->
+              <div class="p-6 border-b border-slate-200">
+                <div class="flex items-start justify-between mb-4">
+                  <div>
+                    <h2 class="text-lg font-semibold text-slate-900">${escapeHtml(selectedBom.projectName)}</h2>
+                    <p class="text-sm text-slate-500">${escapeHtml(selectedBom.designChangeTitle || 'Approved Design')}</p>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <span class="text-sm px-3 py-1 rounded-full font-medium ${statusColors[selectedBom.status] || 'bg-slate-100'}">${selectedBom.status}</span>
+                    ${selectedBom.status === 'draft' && canCreate ? `<button onclick="submitBom('${selectedBom.id}')" class="px-3 py-1.5 text-xs bg-blue-600 text-white rounded-lg hover:bg-blue-700">Submit</button>` : ''}
+                    ${selectedBom.status === 'submitted' && canApprove ? `<button onclick="approveBom('${selectedBom.id}')" class="px-3 py-1.5 text-xs bg-green-600 text-white rounded-lg hover:bg-green-700">Approve</button>` : ''}
+                    ${selectedBom.status === 'submitted' && canApprove ? `<button onclick="rejectBom('${selectedBom.id}')" class="px-3 py-1.5 text-xs bg-red-600 text-white rounded-lg hover:bg-red-700">Reject</button>` : ''}
+                    ${canCreate ? `<button onclick="openBomModal('${selectedBom.id}')" class="p-1.5 rounded-lg hover:bg-slate-100 text-slate-500"><i class="fa-solid fa-pencil text-sm"></i></button>` : ''}
+                    ${isAdmin ? `<button onclick="deleteBom('${selectedBom.id}')" class="p-1.5 rounded-lg hover:bg-slate-100 text-red-500"><i class="fa-solid fa-trash text-sm"></i></button>` : ''}
+                  </div>
+                </div>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                  <div><p class="text-xs text-slate-400">Version</p><p class="font-medium">${selectedBom.version || '1.0'}</p></div>
+                  <div><p class="text-xs text-slate-400">Created</p><p class="font-medium">${new Date(selectedBom.createdAt).toLocaleDateString()}</p></div>
+                  <div><p class="text-xs text-slate-400">Created By</p><p class="font-medium">${escapeHtml(selectedBom.createdByName || '—')}</p></div>
+                  <div><p class="text-xs text-slate-400">Total Cost</p><p class="font-medium text-green-600">${(selectedBom.totalCost || 0).toLocaleString()}</p></div>
+                </div>
+              </div>
+
+              <!-- Items Table -->
+              <div class="p-6">
+                <div class="flex items-center justify-between mb-4">
+                  <h3 class="text-sm font-semibold text-slate-700">Items (${selectedBom.items?.length || 0})</h3>
+                  ${canCreate ? `<button onclick="openBomItemModal('${selectedBom.id}')" class="px-3 py-1.5 text-xs bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100"><i class="fa-solid fa-plus mr-1"></i>Add Item</button>` : ''}
+                </div>
+                <div class="overflow-x-auto">
+                  <table class="w-full text-sm">
+                    <thead class="bg-slate-50 text-xs text-slate-500 uppercase">
+                      <tr>
+                        <th class="px-3 py-2 text-left font-medium">#</th>
+                        <th class="px-3 py-2 text-left font-medium">Part Number</th>
+                        <th class="px-3 py-2 text-left font-medium">Description</th>
+                        <th class="px-3 py-2 text-right font-medium">Qty</th>
+                        <th class="px-3 py-2 text-left font-medium">Unit</th>
+                        <th class="px-3 py-2 text-left font-medium">Material</th>
+                        <th class="px-3 py-2 text-left font-medium">Supplier</th>
+                        <th class="px-3 py-2 text-right font-medium">Unit Cost</th>
+                        <th class="px-3 py-2 text-right font-medium">Total</th>
+                        <th class="px-3 py-2 text-center font-medium">Action</th>
+                      </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100">
+                      ${(selectedBom.items || []).map((item, idx) => `
+                        <tr class="hover:bg-slate-50">
+                          <td class="px-3 py-2.5 text-slate-500">${item.lineNumber || idx + 1}</td>
+                          <td class="px-3 py-2.5 font-medium text-slate-700">${escapeHtml(item.partNumber)}</td>
+                          <td class="px-3 py-2.5 text-slate-600">${escapeHtml(item.description)}</td>
+                          <td class="px-3 py-2.5 text-right font-medium">${item.quantity}</td>
+                          <td class="px-3 py-2.5 text-slate-500">${escapeHtml(item.unit)}</td>
+                          <td class="px-3 py-2.5 text-slate-500">${escapeHtml(item.material)}</td>
+                          <td class="px-3 py-2.5 text-slate-500">${escapeHtml(item.supplier)}</td>
+                          <td class="px-3 py-2.5 text-right">${item.unitCost?.toLocaleString() || '0'}</td>
+                          <td class="px-3 py-2.5 text-right font-medium text-slate-700">${item.totalCost?.toLocaleString() || '0'}</td>
+                          <td class="px-3 py-2.5 text-center">
+                            ${canCreate ? `<div class="flex items-center justify-center gap-1">
+                              <button onclick="openBomItemModal('${selectedBom.id}', '${item.id}')" class="p-1 text-slate-400 hover:text-blue-500"><i class="fa-solid fa-pencil text-xs"></i></button>
+                              <button onclick="deleteBomItem('${selectedBom.id}', '${item.id}')" class="p-1 text-slate-400 hover:text-red-500"><i class="fa-solid fa-trash text-xs"></i></button>
+                            </div>` : '—'}
+                          </td>
+                        </tr>
+                      `).join('')}
+                      <tr class="bg-slate-50 font-semibold">
+                        <td class="px-3 py-2.5 text-right" colspan="8">Total</td>
+                        <td class="px-3 py-2.5 text-right text-green-600">${(selectedBom.totalCost || 0).toLocaleString()}</td>
+                        <td></td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          `}
+        </div>
+      </div>
+
+      <!-- BOM Modal -->
+      <div id="bomModal" class="modal-overlay fixed inset-0 z-50 bg-black/50 hidden items-center justify-center p-4">
+        <div class="modal-content bg-white rounded-xl shadow-xl max-w-lg w-full p-6">
+          <div class="flex items-center justify-between mb-4">
+            <h2 id="bomModalTitle" class="text-xl font-bold text-slate-900">New BOM</h2>
+            <button onclick="closeBomModal()" class="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400"><i class="fa-solid fa-xmark"></i></button>
+          </div>
+          <div class="space-y-4">
+            <div>
+              <label class="block text-sm font-medium text-slate-700 mb-1">Project</label>
+              <select id="bomProject" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">${projectOptions}</select>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-slate-700 mb-1">Linked Approved Design (optional)</label>
+              <select id="bomDesign" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">${designOptions}</select>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-slate-700 mb-1">Version</label>
+              <input type="text" id="bomVersion" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" value="1.0">
+            </div>
+          </div>
+          <div class="flex justify-end gap-2 mt-6">
+            <button onclick="closeBomModal()" class="px-4 py-2 border border-slate-200 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-50">Cancel</button>
+            <button onclick="saveBom()" class="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700">Save</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- BOM Item Modal -->
+      <div id="bomItemModal" class="modal-overlay fixed inset-0 z-50 bg-black/50 hidden items-center justify-center p-4">
+        <div class="modal-content bg-white rounded-xl shadow-xl max-w-lg w-full p-6">
+          <div class="flex items-center justify-between mb-4">
+            <h2 id="bomItemModalTitle" class="text-xl font-bold text-slate-900">Add BOM Item</h2>
+            <button onclick="closeBomItemModal()" class="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400"><i class="fa-solid fa-xmark"></i></button>
+          </div>
+          <div class="space-y-4">
+            <div class="grid grid-cols-2 gap-4">
+              <div><label class="block text-sm font-medium text-slate-700 mb-1">Line #</label><input type="number" id="bomItemLine" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"></div>
+              <div><label class="block text-sm font-medium text-slate-700 mb-1">Part Number</label><input type="text" id="bomItemPart" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"></div>
+            </div>
+            <div><label class="block text-sm font-medium text-slate-700 mb-1">Description</label><input type="text" id="bomItemDesc" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"></div>
+            <div class="grid grid-cols-2 gap-4">
+              <div><label class="block text-sm font-medium text-slate-700 mb-1">Quantity</label><input type="number" id="bomItemQty" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" min="0" step="0.01"></div>
+              <div><label class="block text-sm font-medium text-slate-700 mb-1">Unit</label><input type="text" id="bomItemUnit" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="pcs, m, kg, sq.m"></div>
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+              <div><label class="block text-sm font-medium text-slate-700 mb-1">Material</label><input type="text" id="bomItemMaterial" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"></div>
+              <div><label class="block text-sm font-medium text-slate-700 mb-1">Supplier</label><input type="text" id="bomItemSupplier" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"></div>
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+              <div><label class="block text-sm font-medium text-slate-700 mb-1">Unit Cost</label><input type="number" id="bomItemUnitCost" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" min="0" step="0.01"></div>
+              <div><label class="block text-sm font-medium text-slate-700 mb-1">Notes</label><input type="text" id="bomItemNotes" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"></div>
+            </div>
+          </div>
+          <div class="flex justify-end gap-2 mt-6">
+            <button onclick="closeBomItemModal()" class="px-4 py-2 border border-slate-200 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-50">Cancel</button>
+            <button onclick="saveBomItem()" class="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700">Save Item</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+let editingBomId = null;
+let editingBomItemId = null;
+let editingBomItemBomId = null;
+
+function openBomModal(id = null) {
+  editingBomId = id;
+  const modal = document.getElementById('bomModal');
+  modal.classList.remove('hidden'); modal.classList.add('flex');
+  document.getElementById('bomModalTitle').textContent = id ? 'Edit BOM' : 'New BOM';
+  if (id) {
+    const data = getData();
+    const b = data.boms.find(x => x.id === id);
+    if (b) {
+      document.getElementById('bomProject').value = b.projectId;
+      document.getElementById('bomDesign').value = b.designChangeId || '';
+      document.getElementById('bomVersion').value = b.version || '1.0';
+    }
+  } else {
+    document.getElementById('bomProject').selectedIndex = 0;
+    document.getElementById('bomDesign').value = '';
+    document.getElementById('bomVersion').value = '1.0';
+  }
+}
+function closeBomModal() { document.getElementById('bomModal').classList.add('hidden'); document.getElementById('bomModal').classList.remove('flex'); editingBomId = null; }
+function saveBom() {
+  const data = getData();
+  const project = data.projects.find(p => p.id === document.getElementById('bomProject').value);
+  const designId = document.getElementById('bomDesign').value;
+  const design = data.designChanges?.find(c => c.id === designId);
+  const version = document.getElementById('bomVersion').value || '1.0';
+
+  if (editingBomId) {
+    const updated = data.boms.map(b => b.id === editingBomId ? {
+      ...b,
+      projectId: project.id,
+      projectName: project.name,
+      designChangeId: designId || '',
+      designChangeTitle: design?.title || 'Approved Design',
+      version
+    } : b);
+    saveData({ boms: updated });
+    logActivity(data.currentUser.id, data.currentUser.name, 'update', 'bom', editingBomId, `Updated BOM for ${project.name}`);
+    showToast('BOM updated', 'success');
+  } else {
+    const newBom = {
+      id: generateId('bom'),
+      projectId: project.id,
+      projectName: project.name,
+      designChangeId: designId || '',
+      designChangeTitle: design?.title || 'Approved Design',
+      status: 'draft',
+      version,
+      items: [],
+      totalCost: 0,
+      createdBy: data.currentUser.id,
+      createdByName: data.currentUser.name,
+      createdAt: new Date().toISOString(),
+      approvedBy: null,
+      approvedByName: null,
+      approvedAt: null
+    };
+    saveData({ boms: [...data.boms, newBom] });
+    window.bomSelectedId = newBom.id;
+    logActivity(data.currentUser.id, data.currentUser.name, 'create', 'bom', newBom.id, `Created BOM for ${project.name}`);
+    showToast('BOM created', 'success');
+  }
+  closeBomModal(); render();
+}
+function deleteBom(id) {
+  const data = getData();
+  const b = data.boms.find(x => x.id === id);
+  if (!confirm(`Delete BOM for "${b.projectName}"?`)) return;
+  const updated = data.boms.filter(x => x.id !== id);
+  saveData({ boms: updated });
+  if (window.bomSelectedId === id) window.bomSelectedId = null;
+  logActivity(data.currentUser.id, data.currentUser.name, 'delete', 'bom', id, `Deleted BOM: ${b.projectName}`);
+  showToast('BOM deleted', 'success'); render();
+}
+function submitBom(id) {
+  const data = getData();
+  const updated = data.boms.map(b => b.id === id ? { ...b, status: 'submitted' } : b);
+  saveData({ boms: updated });
+  logActivity(data.currentUser.id, data.currentUser.name, 'submit', 'bom', id, 'Submitted BOM for approval');
+  showToast('BOM submitted for approval', 'success'); render();
+}
+function approveBom(id) {
+  const data = getData();
+  const updated = data.boms.map(b => b.id === id ? {
+    ...b,
+    status: 'approved',
+    approvedBy: data.currentUser.id,
+    approvedByName: data.currentUser.name,
+    approvedAt: new Date().toISOString()
+  } : b);
+  saveData({ boms: updated });
+  logActivity(data.currentUser.id, data.currentUser.name, 'approve', 'bom', id, 'Approved BOM');
+  showToast('BOM approved', 'success'); render();
+}
+function rejectBom(id) {
+  const data = getData();
+  const updated = data.boms.map(b => b.id === id ? { ...b, status: 'rejected' } : b);
+  saveData({ boms: updated });
+  logActivity(data.currentUser.id, data.currentUser.name, 'reject', 'bom', id, 'Rejected BOM');
+  showToast('BOM rejected', 'error'); render();
+}
+
+function openBomItemModal(bomId, itemId = null) {
+  editingBomItemBomId = bomId;
+  editingBomItemId = itemId;
+  const modal = document.getElementById('bomItemModal');
+  modal.classList.remove('hidden'); modal.classList.add('flex');
+  document.getElementById('bomItemModalTitle').textContent = itemId ? 'Edit BOM Item' : 'Add BOM Item';
+  const data = getData();
+  const bom = data.boms.find(b => b.id === bomId);
+  const nextLine = (bom.items?.length || 0) + 1;
+  if (itemId) {
+    const item = bom.items.find(i => i.id === itemId);
+    document.getElementById('bomItemLine').value = item.lineNumber || '';
+    document.getElementById('bomItemPart').value = item.partNumber || '';
+    document.getElementById('bomItemDesc').value = item.description || '';
+    document.getElementById('bomItemQty').value = item.quantity || '';
+    document.getElementById('bomItemUnit').value = item.unit || '';
+    document.getElementById('bomItemMaterial').value = item.material || '';
+    document.getElementById('bomItemSupplier').value = item.supplier || '';
+    document.getElementById('bomItemUnitCost').value = item.unitCost || '';
+    document.getElementById('bomItemNotes').value = item.notes || '';
+  } else {
+    document.getElementById('bomItemLine').value = nextLine;
+    document.getElementById('bomItemPart').value = '';
+    document.getElementById('bomItemDesc').value = '';
+    document.getElementById('bomItemQty').value = '';
+    document.getElementById('bomItemUnit').value = '';
+    document.getElementById('bomItemMaterial').value = '';
+    document.getElementById('bomItemSupplier').value = '';
+    document.getElementById('bomItemUnitCost').value = '';
+    document.getElementById('bomItemNotes').value = '';
+  }
+}
+function closeBomItemModal() { document.getElementById('bomItemModal').classList.add('hidden'); document.getElementById('bomItemModal').classList.remove('flex'); editingBomItemId = null; editingBomItemBomId = null; }
+function saveBomItem() {
+  const data = getData();
+  const bom = data.boms.find(b => b.id === editingBomItemBomId);
+  if (!bom) { closeBomItemModal(); return; }
+  const qty = Number(document.getElementById('bomItemQty').value || 0);
+  const unitCost = Number(document.getElementById('bomItemUnitCost').value || 0);
+  const totalCost = qty * unitCost;
+  const item = {
+    id: editingBomItemId || generateId('bom-item'),
+    lineNumber: Number(document.getElementById('bomItemLine').value || 0),
+    partNumber: document.getElementById('bomItemPart').value || '',
+    description: document.getElementById('bomItemDesc').value || '',
+    quantity: qty,
+    unit: document.getElementById('bomItemUnit').value || 'pcs',
+    material: document.getElementById('bomItemMaterial').value || '',
+    supplier: document.getElementById('bomItemSupplier').value || '',
+    unitCost: unitCost,
+    totalCost: totalCost,
+    notes: document.getElementById('bomItemNotes').value || ''
+  };
+  let newItems;
+  if (editingBomItemId) {
+    newItems = bom.items.map(i => i.id === editingBomItemId ? item : i);
+  } else {
+    newItems = [...bom.items, item];
+  }
+  const newTotal = newItems.reduce((s, i) => s + (i.totalCost || 0), 0);
+  const updatedBoms = data.boms.map(b => b.id === editingBomItemBomId ? { ...b, items: newItems, totalCost: newTotal } : b);
+  saveData({ boms: updatedBoms });
+  logActivity(data.currentUser.id, data.currentUser.name, editingBomItemId ? 'update' : 'create', 'bom-item', item.id, `${editingBomItemId ? 'Updated' : 'Added'} BOM item: ${item.description}`);
+  showToast(editingBomItemId ? 'Item updated' : 'Item added', 'success');
+  closeBomItemModal(); render();
+}
+function deleteBomItem(bomId, itemId) {
+  const data = getData();
+  const bom = data.boms.find(b => b.id === bomId);
+  const item = bom.items.find(i => i.id === itemId);
+  if (!confirm(`Delete item "${item.description}"?`)) return;
+  const newItems = bom.items.filter(i => i.id !== itemId);
+  const newTotal = newItems.reduce((s, i) => s + (i.totalCost || 0), 0);
+  const updatedBoms = data.boms.map(b => b.id === bomId ? { ...b, items: newItems, totalCost: newTotal } : b);
+  saveData({ boms: updatedBoms });
+  logActivity(data.currentUser.id, data.currentUser.name, 'delete', 'bom-item', itemId, `Deleted BOM item: ${item.description}`);
+  showToast('Item deleted', 'success'); render();
+}
+function exportBOM(bomId) {
+  const data = getData();
+  const bom = data.boms.find(b => b.id === bomId);
+  if (!bom) return;
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF('l', 'mm', 'a4');
+  doc.setFontSize(16); doc.text('Bill of Materials', 14, 20);
+  doc.setFontSize(10); doc.text(`Project: ${bom.projectName}`, 14, 28);
+  doc.text(`Design: ${bom.designChangeTitle || 'Approved Design'}`, 14, 33);
+  doc.text(`Version: ${bom.version || '1.0'}`, 14, 38);
+  doc.text(`Status: ${bom.status}`, 14, 43);
+  doc.text(`Created: ${bom.createdByName || '—'} | ${new Date(bom.createdAt).toLocaleDateString()}`, 14, 48);
+  if (bom.approvedByName) doc.text(`Approved: ${bom.approvedByName} | ${new Date(bom.approvedAt).toLocaleDateString()}`, 14, 53);
+  const tableData = (bom.items || []).map(i => [
+    i.lineNumber || '', i.partNumber || '', i.description || '', i.quantity || '', i.unit || '', i.material || '', i.supplier || '', i.unitCost?.toLocaleString() || '', i.totalCost?.toLocaleString() || ''
+  ]);
+  tableData.push(['', '', '', '', '', '', '', 'Total', (bom.totalCost || 0).toLocaleString()]);
+  doc.autoTable({
+    head: [['Line #', 'Part Number', 'Description', 'Qty', 'Unit', 'Material', 'Supplier', 'Unit Cost', 'Total Cost']],
+    body: tableData,
+    startY: 58,
+    styles: { fontSize: 8, cellPadding: 2 },
+    headStyles: { fillColor: [37, 99, 235], textColor: 255 },
+    columnStyles: { 0: { cellWidth: 12 }, 3: { halign: 'right' }, 7: { halign: 'right' }, 8: { halign: 'right' } }
+  });
+  doc.save(`bom-${bom.projectName.replace(/\s+/g, '-').toLowerCase()}.pdf`);
+  showToast('BOM PDF exported', 'success');
+}
+
 </script>
 </body>
 </html>
