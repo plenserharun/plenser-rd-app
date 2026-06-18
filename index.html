@@ -475,7 +475,81 @@ const defaultData = {
   "currentUser": null,
   "siteReports": [],
   "designFiles": [],
-  "fabricationJobs": [],
+  "fabricationJobs": [
+    {
+      "id": "fab-1",
+      "name": "Table Virello",
+      "projectId": "proj-1",
+      "status": "In Production",
+      "startDate": "2025-11-03",
+      "endDate": "2025-11-07",
+      "progress": 60,
+      "materials": "Stainless steel 304, 6mm plate",
+      "labourHours": 48,
+      "cost": 12500,
+      "notes": "Welding reports pending. QC scheduled for Nov 6.",
+      "createdAt": "2026-06-10T02:56:29.601Z",
+      "operations": [
+        { "id": "op-1-1", "name": "Painting Machine", "startDate": "2025-11-03", "endDate": "2025-11-05", "status": "Completed", "progress": 100, "assignee": "Harun Kamau" },
+        { "id": "op-1-2", "name": "Assembling", "startDate": "2025-11-05", "endDate": "2025-11-07", "status": "In Progress", "progress": 40, "assignee": "Faridah Odhiambo" }
+      ]
+    },
+    {
+      "id": "fab-2",
+      "name": "Chair Novalis",
+      "projectId": "proj-2",
+      "status": "Planned",
+      "startDate": "2025-11-07",
+      "endDate": "2025-11-14",
+      "progress": 10,
+      "materials": "Mild steel frame, powder coat",
+      "labourHours": 32,
+      "cost": 8400,
+      "notes": "Awaiting material delivery.",
+      "createdAt": "2026-06-10T02:56:29.601Z",
+      "operations": [
+        { "id": "op-2-1", "name": "Painting Machine", "startDate": "2025-11-07", "endDate": "2025-11-09", "status": "Planned", "progress": 0, "assignee": "Wycliffe Amisi" },
+        { "id": "op-2-2", "name": "Chairs", "startDate": "2025-11-09", "endDate": "2025-11-14", "status": "Planned", "progress": 0, "assignee": "Dedan Kiragu" }
+      ]
+    },
+    {
+      "id": "fab-3",
+      "name": "Velistra – Luxury",
+      "projectId": "proj-3",
+      "status": "In Production",
+      "startDate": "2025-11-14",
+      "endDate": "2025-11-18",
+      "progress": 30,
+      "materials": "Brass, leather inserts",
+      "labourHours": 56,
+      "cost": 15200,
+      "notes": "High precision welding required.",
+      "createdAt": "2026-06-10T02:56:29.601Z",
+      "operations": [
+        { "id": "op-3-1", "name": "Welding Unit", "startDate": "2025-11-14", "endDate": "2025-11-16", "status": "In Progress", "progress": 50, "assignee": "Harun Kamau" },
+        { "id": "op-3-2", "name": "Fabricating", "startDate": "2025-11-15", "endDate": "2025-11-17", "status": "In Progress", "progress": 25, "assignee": "Faridah Odhiambo" },
+        { "id": "op-3-3", "name": "Frames", "startDate": "2025-11-17", "endDate": "2025-11-18", "status": "Planned", "progress": 0, "assignee": "Wycliffe Amisi" }
+      ]
+    },
+    {
+      "id": "fab-4",
+      "name": "Virella Premium",
+      "projectId": "proj-1",
+      "status": "Quality Check",
+      "startDate": "2025-11-18",
+      "endDate": "2025-11-20",
+      "progress": 85,
+      "materials": "Chrome finish, hardwood base",
+      "labourHours": 24,
+      "cost": 9800,
+      "notes": "Final inspection and certificate signing.",
+      "createdAt": "2026-06-10T02:56:29.601Z",
+      "operations": [
+        { "id": "op-4-1", "name": "Quality Control", "startDate": "2025-11-18", "endDate": "2025-11-19", "status": "In Progress", "progress": 70, "assignee": "Dedan Kiragu" },
+        { "id": "op-4-2", "name": "Inspection", "startDate": "2025-11-19", "endDate": "2025-11-20", "status": "Planned", "progress": 0, "assignee": "Moses Kamau" }
+      ]
+    }
+  ],
   "airPollutionProjects": [],
   "heatRecoveryProjects": [],
   "inventions": [],
@@ -1119,40 +1193,395 @@ async function saveSiteReport() {
 
 function renderFabrication() {
   const data = getData();
-  const jobs = data.fabricationJobs;
+  const jobs = data.fabricationJobs || [];
+  const view = window.fabGanttView || 'weekly';
+  const expanded = window.fabExpanded || {};
+
+  // Date range for Gantt
+  const allDates = jobs.flatMap(j => [
+    new Date(j.startDate), new Date(j.endDate),
+    ...(j.operations || []).flatMap(o => [new Date(o.startDate), new Date(o.endDate)])
+  ]).filter(d => !isNaN(d));
+  let minDate = allDates.length ? new Date(Math.min(...allDates)) : new Date();
+  let maxDate = allDates.length ? new Date(Math.max(...allDates)) : new Date();
+  minDate.setDate(minDate.getDate() - 3);
+  maxDate.setDate(maxDate.getDate() + 7);
+  const totalMs = maxDate - minDate;
+  const totalDays = totalMs / (1000 * 60 * 60 * 24);
+  const today = new Date();
+  const todayPct = today >= minDate && today <= maxDate ? ((today - minDate) / totalMs) * 100 : null;
+
+  function getPos(start, end) {
+    const s = new Date(start);
+    const e = new Date(end);
+    const startPct = ((s - minDate) / totalMs) * 100;
+    const widthPct = ((e - s) / totalMs) * 100;
+    return { startPct: Math.max(0, startPct), widthPct: Math.max(1, widthPct) };
+  }
+
+  const statusColors = {
+    'Planned': 'bg-slate-400',
+    'In Production': 'bg-blue-500',
+    'Quality Check': 'bg-amber-500',
+    'Completed': 'bg-green-500'
+  };
+
+  // Build header cells
+  let headerCells = '';
+  let current = new Date(minDate);
+  if (view === 'weekly') {
+    while (current <= maxDate) {
+      const dayStart = new Date(current);
+      const dayEnd = new Date(current);
+      dayEnd.setDate(dayEnd.getDate() + 1);
+      const end = dayEnd > maxDate ? maxDate : dayEnd;
+      const startPct = ((dayStart - minDate) / totalMs) * 100;
+      const widthPct = ((end - dayStart) / totalMs) * 100;
+      const label = dayStart.toLocaleDateString('en-US', { weekday: 'short', day: 'numeric' });
+      const isWeekend = dayStart.getDay() === 0 || dayStart.getDay() === 6;
+      headerCells += `<div class="absolute top-0 h-full border-r border-slate-200 text-[10px] font-medium text-slate-400 flex items-center justify-center ${isWeekend ? 'bg-slate-50' : ''}" style="left: ${startPct}%; width: ${widthPct}%">${label}</div>`;
+      current.setDate(current.getDate() + 1);
+    }
+  } else {
+    while (current <= maxDate) {
+      const monthStart = new Date(current);
+      const monthEnd = new Date(current.getFullYear(), current.getMonth() + 1, 1);
+      const end = monthEnd > maxDate ? maxDate : monthEnd;
+      const startPct = ((monthStart - minDate) / totalMs) * 100;
+      const widthPct = ((end - monthStart) / totalMs) * 100;
+      headerCells += `<div class="absolute top-0 h-full border-r border-slate-200 text-xs font-medium text-slate-400 flex items-center px-2" style="left: ${startPct}%; width: ${widthPct}%">${monthStart.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}</div>`;
+      current = monthEnd;
+    }
+  }
+
+  function renderBar(item, isOp, jobId) {
+    const pos = getPos(item.startDate, item.endDate);
+    const color = statusColors[item.status] || 'bg-blue-500';
+    const height = isOp ? 'h-6' : 'h-8';
+    const label = isOp ? item.name : item.name;
+    const onclick = `openFabEditModal('${jobId}', '${item.id}')`;
+    return `
+      <div class="absolute top-1 bottom-1 rounded-md ${color} opacity-90 cursor-pointer hover:opacity-100 hover:shadow-md transition-all ${height}" style="left: ${pos.startPct}%; width: ${pos.widthPct}%; min-width: 4px;" onclick="${onclick}" title="${escapeHtml(label)} — ${item.startDate} to ${item.endDate} (${item.status})">
+        <div class="h-full flex items-center px-2">
+          <span class="text-[10px] text-white font-medium truncate">${escapeHtml(label)}</span>
+        </div>
+      </div>
+    `;
+  }
+
+  let rows = '';
+  jobs.forEach(job => {
+    const pos = getPos(job.startDate, job.endDate);
+    const isExpanded = expanded[job.id];
+    rows += `
+      <div class="relative flex items-center border-b border-slate-100 hover:bg-slate-50">
+        <div class="w-64 shrink-0 px-3 py-2 border-r border-slate-100 flex items-center gap-2">
+          <button onclick="toggleFabExpand('${job.id}')" class="text-slate-400 hover:text-slate-600 w-5">
+            <i class="fa-solid ${isExpanded ? 'fa-chevron-down' : 'fa-chevron-right'}"></i>
+          </button>
+          <div class="min-w-0">
+            <p class="text-sm font-semibold text-slate-900 truncate">${escapeHtml(job.name)}</p>
+            <p class="text-[10px] text-slate-400">${escapeHtml(projectName(job.projectId))}</p>
+          </div>
+        </div>
+        <div class="w-28 shrink-0 px-2 py-2 border-r border-slate-100 text-[11px] text-slate-500">${job.startDate || '—'}</div>
+        <div class="w-28 shrink-0 px-2 py-2 border-r border-slate-100 text-[11px] text-slate-500">${job.endDate || '—'}</div>
+        <div class="flex-1 relative h-10 bg-slate-100/50">
+          ${renderBar(job, false, job.id)}
+        </div>
+        <div class="w-10 shrink-0 flex items-center justify-center">
+          <button onclick="deleteFabricationJob('${job.id}')" class="text-slate-300 hover:text-red-500"><i class="fa-solid fa-trash text-xs"></i></button>
+        </div>
+      </div>
+    `;
+    if (isExpanded && job.operations) {
+      job.operations.forEach(op => {
+        rows += `
+          <div class="relative flex items-center border-b border-slate-50 hover:bg-slate-50">
+            <div class="w-64 shrink-0 px-3 py-1.5 border-r border-slate-100 pl-10">
+              <p class="text-xs text-slate-600 truncate">${escapeHtml(op.name)}</p>
+              <p class="text-[10px] text-slate-400">${escapeHtml(op.assignee || '—')}</p>
+            </div>
+            <div class="w-28 shrink-0 px-2 py-1.5 border-r border-slate-100 text-[11px] text-slate-400">${op.startDate || '—'}</div>
+            <div class="w-28 shrink-0 px-2 py-1.5 border-r border-slate-100 text-[11px] text-slate-400">${op.endDate || '—'}</div>
+            <div class="flex-1 relative h-8 bg-slate-100/30">
+              ${renderBar(op, true, job.id)}
+            </div>
+            <div class="w-10 shrink-0"></div>
+          </div>
+        `;
+      });
+      rows += `
+        <div class="relative flex items-center border-b border-slate-50">
+          <div class="w-64 shrink-0 px-3 py-1 pl-10">
+            <button onclick="openFabAddOpModal('${job.id}')" class="text-[11px] text-blue-600 hover:text-blue-700 font-medium"><i class="fa-solid fa-plus mr-1"></i>Add Operation</button>
+          </div>
+          <div class="w-28 shrink-0"></div>
+          <div class="w-28 shrink-0"></div>
+          <div class="flex-1"></div>
+          <div class="w-10 shrink-0"></div>
+        </div>
+      `;
+    }
+  });
+
   return `
     <div class="space-y-6">
       ${renderPageHeader('Fabrication', 'Track fabrication jobs, welding reports, quality checks, progress, certificates, materials, labour hours, and costs.', 'fa-industry')}
-      <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
-        <h2 class="text-lg font-semibold text-slate-900 mb-4">New Fabrication Job</h2>
-        <div class="grid gap-4 md:grid-cols-3">
-          <input id="fabName" class="px-3 py-2 border border-slate-200 rounded-lg" placeholder="Job name">
-          <select id="fabProject" class="px-3 py-2 border border-slate-200 rounded-lg">${projectOptions()}</select>
-          <select id="fabStatus" class="px-3 py-2 border border-slate-200 rounded-lg"><option>Planned</option><option>In Production</option><option>Quality Check</option><option>Completed</option></select>
-          <input id="fabMaterials" class="px-3 py-2 border border-slate-200 rounded-lg" placeholder="Material requirements">
-          <input id="fabLabour" type="number" class="px-3 py-2 border border-slate-200 rounded-lg" placeholder="Labour hours">
-          <input id="fabCost" type="number" class="px-3 py-2 border border-slate-200 rounded-lg" placeholder="Cost">
-          <textarea id="fabNotes" rows="3" class="md:col-span-3 px-3 py-2 border border-slate-200 rounded-lg" placeholder="Welding reports, quality checks, certificate notes"></textarea>
-        </div>
-        <button onclick="saveFabricationJob()" class="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700">Save Job</button>
-      </div>
+
+      <!-- Stats -->
       <div class="grid gap-4 md:grid-cols-4">
         <div class="bg-white rounded-xl border border-slate-200 p-5"><p class="text-xs text-slate-400">Jobs</p><p class="text-2xl font-bold">${jobs.length}</p></div>
         <div class="bg-white rounded-xl border border-slate-200 p-5"><p class="text-xs text-slate-400">Completed</p><p class="text-2xl font-bold">${jobs.filter(j => j.status === 'Completed').length}</p></div>
         <div class="bg-white rounded-xl border border-slate-200 p-5"><p class="text-xs text-slate-400">Labour Hours</p><p class="text-2xl font-bold">${jobs.reduce((sum, job) => sum + Number(job.labourHours || 0), 0)}</p></div>
         <div class="bg-white rounded-xl border border-slate-200 p-5"><p class="text-xs text-slate-400">Tracked Cost</p><p class="text-2xl font-bold">${jobs.reduce((sum, job) => sum + Number(job.cost || 0), 0).toLocaleString()}</p></div>
       </div>
-      ${jobs.length === 0 ? renderEmptyState('No fabrication jobs yet.') : jobs.map(job => `<div class="bg-white rounded-xl border border-slate-200 p-5"><div class="flex justify-between"><h3 class="font-semibold">${escapeHtml(job.name)}</h3><span class="text-xs px-2 py-1 bg-slate-100 rounded-full">${escapeHtml(job.status)}</span></div><p class="text-sm text-slate-500 mt-1">${escapeHtml(job.notes)}</p><p class="text-xs text-slate-400 mt-3">${escapeHtml(projectName(job.projectId))} - ${escapeHtml(job.materials)}</p></div>`).join('')}
+
+      <!-- New Job Form -->
+      <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+        <h2 class="text-lg font-semibold text-slate-900 mb-4">New Fabrication Job</h2>
+        <div class="grid gap-4 md:grid-cols-4">
+          <input id="fabName" class="px-3 py-2 border border-slate-200 rounded-lg" placeholder="Job name">
+          <select id="fabProject" class="px-3 py-2 border border-slate-200 rounded-lg">${projectOptions()}</select>
+          <input id="fabStartDate" type="date" class="px-3 py-2 border border-slate-200 rounded-lg">
+          <input id="fabEndDate" type="date" class="px-3 py-2 border border-slate-200 rounded-lg">
+          <select id="fabStatus" class="px-3 py-2 border border-slate-200 rounded-lg"><option>Planned</option><option>In Production</option><option>Quality Check</option><option>Completed</option></select>
+          <input id="fabMaterials" class="px-3 py-2 border border-slate-200 rounded-lg" placeholder="Material requirements">
+          <input id="fabLabour" type="number" class="px-3 py-2 border border-slate-200 rounded-lg" placeholder="Labour hours">
+          <input id="fabCost" type="number" class="px-3 py-2 border border-slate-200 rounded-lg" placeholder="Cost">
+          <textarea id="fabNotes" rows="2" class="md:col-span-4 px-3 py-2 border border-slate-200 rounded-lg" placeholder="Welding reports, quality checks, certificate notes"></textarea>
+        </div>
+        <button onclick="saveFabricationJob()" class="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700">Save Job</button>
+      </div>
+
+      <!-- Gantt -->
+      <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-0 overflow-hidden">
+        <div class="flex items-center justify-between px-6 py-4 border-b border-slate-200">
+          <h2 class="text-lg font-semibold text-slate-900">Fabrication Schedule (Gantt)</h2>
+          <div class="flex gap-2">
+            <button onclick="setFabView('weekly')" class="px-3 py-1.5 text-xs font-medium rounded-lg ${view === 'weekly' ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}">Weekly</button>
+            <button onclick="setFabView('monthly')" class="px-3 py-1.5 text-xs font-medium rounded-lg ${view === 'monthly' ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}">Monthly</button>
+          </div>
+        </div>
+        <div class="overflow-x-auto">
+          <div class="min-w-[900px]">
+            <!-- Header -->
+            <div class="relative flex border-b border-slate-200 bg-slate-50">
+              <div class="w-64 shrink-0 px-3 py-2 text-xs font-semibold text-slate-500 border-r border-slate-200">Manufacturing Orders</div>
+              <div class="w-28 shrink-0 px-2 py-2 text-xs font-semibold text-slate-500 border-r border-slate-200">Start Date</div>
+              <div class="w-28 shrink-0 px-2 py-2 text-xs font-semibold text-slate-500 border-r border-slate-200">End Date</div>
+              <div class="flex-1 relative h-8">
+                <div class="absolute inset-0">
+                  ${headerCells}
+                </div>
+                ${todayPct !== null ? `<div class="absolute top-0 bottom-0 w-px bg-red-500 z-10" style="left: ${todayPct}%"><span class="absolute -top-1 -left-6 text-[10px] text-red-500 font-bold">Today</span></div>` : ''}
+              </div>
+              <div class="w-10 shrink-0"></div>
+            </div>
+            <!-- Rows -->
+            <div class="relative">
+              ${rows || '<div class="p-6 text-center text-sm text-slate-400">No fabrication jobs to display.</div>'}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Edit Modal -->
+    <div id="fabEditModal" class="fixed inset-0 z-50 hidden">
+      <div class="absolute inset-0 bg-black/40" onclick="closeFabEditModal()"></div>
+      <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-lg bg-white rounded-xl shadow-xl p-6">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-lg font-semibold text-slate-900" id="fabEditModalTitle">Edit</h3>
+          <button onclick="closeFabEditModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="space-y-4" id="fabEditModalBody"></div>
+      </div>
     </div>
   `;
 }
 
+function setFabView(view) {
+  window.fabGanttView = view;
+  render();
+}
+
+function toggleFabExpand(jobId) {
+  window.fabExpanded = { ...(window.fabExpanded || {}), [jobId]: !(window.fabExpanded || {})[jobId] };
+  render();
+}
+
 function saveFabricationJob() {
   const data = getData();
-  const job = { id: generateId('fab'), name: document.getElementById('fabName').value || 'Fabrication Job', projectId: document.getElementById('fabProject').value, status: document.getElementById('fabStatus').value, materials: document.getElementById('fabMaterials').value, labourHours: Number(document.getElementById('fabLabour').value || 0), cost: Number(document.getElementById('fabCost').value || 0), notes: document.getElementById('fabNotes').value, createdAt: new Date().toISOString() };
+  const job = {
+    id: generateId('fab'),
+    name: document.getElementById('fabName').value || 'Fabrication Job',
+    projectId: document.getElementById('fabProject').value,
+    status: document.getElementById('fabStatus').value,
+    startDate: document.getElementById('fabStartDate').value || new Date().toISOString().slice(0, 10),
+    endDate: document.getElementById('fabEndDate').value || new Date().toISOString().slice(0, 10),
+    materials: document.getElementById('fabMaterials').value,
+    labourHours: Number(document.getElementById('fabLabour').value || 0),
+    cost: Number(document.getElementById('fabCost').value || 0),
+    notes: document.getElementById('fabNotes').value,
+    progress: 0,
+    operations: [],
+    createdAt: new Date().toISOString()
+  };
   saveData({ fabricationJobs: [job, ...data.fabricationJobs] });
   logActivity(data.currentUser.id, data.currentUser.name, 'create', 'fabrication-job', job.id, `Created fabrication job: ${job.name}`);
   showToast('Fabrication job saved', 'success');
+  render();
+}
+
+function deleteFabricationJob(jobId) {
+  if (!confirm('Delete this fabrication job and all its operations?')) return;
+  const data = getData();
+  const job = data.fabricationJobs.find(j => j.id === jobId);
+  saveData({ fabricationJobs: data.fabricationJobs.filter(j => j.id !== jobId) });
+  if (job) logActivity(data.currentUser.id, data.currentUser.name, 'delete', 'fabrication-job', jobId, `Deleted fabrication job: ${job.name}`);
+  showToast('Job deleted', 'success');
+  render();
+}
+
+function openFabEditModal(jobId, opId) {
+  const data = getData();
+  const job = data.fabricationJobs.find(j => j.id === jobId);
+  if (!job) return;
+  const isOp = opId && opId !== jobId;
+  const item = isOp ? job.operations.find(o => o.id === opId) : job;
+  if (!item) return;
+
+  const title = isOp ? `Edit Operation: ${item.name}` : `Edit Job: ${item.name}`;
+  const statusOptions = ['Planned', 'In Production', 'Quality Check', 'Completed'].map(s => `<option ${item.status === s ? 'selected' : ''}>${s}</option>`).join('');
+  const userOptions = data.users.map(u => `<option value="${u.name}" ${u.name === (item.assignee || '') ? 'selected' : ''}>${u.name}</option>`).join('');
+
+  const body = isOp ? `
+    <div class="grid gap-3 md:grid-cols-2">
+      <div><label class="block text-xs font-medium text-slate-600 mb-1">Name</label><input id="fabEditName" class="w-full px-3 py-2 border border-slate-200 rounded-lg" value="${escapeHtml(item.name)}"></div>
+      <div><label class="block text-xs font-medium text-slate-600 mb-1">Assignee</label><select id="fabEditAssignee" class="w-full px-3 py-2 border border-slate-200 rounded-lg">${userOptions}</select></div>
+      <div><label class="block text-xs font-medium text-slate-600 mb-1">Start Date</label><input id="fabEditStart" type="date" class="w-full px-3 py-2 border border-slate-200 rounded-lg" value="${item.startDate || ''}"></div>
+      <div><label class="block text-xs font-medium text-slate-600 mb-1">End Date</label><input id="fabEditEnd" type="date" class="w-full px-3 py-2 border border-slate-200 rounded-lg" value="${item.endDate || ''}"></div>
+      <div><label class="block text-xs font-medium text-slate-600 mb-1">Status</label><select id="fabEditStatus" class="w-full px-3 py-2 border border-slate-200 rounded-lg">${statusOptions}</select></div>
+      <div><label class="block text-xs font-medium text-slate-600 mb-1">Progress (%)</label><input id="fabEditProgress" type="number" min="0" max="100" class="w-full px-3 py-2 border border-slate-200 rounded-lg" value="${item.progress || 0}"></div>
+    </div>
+    <div class="flex justify-end gap-2 pt-2">
+      <button onclick="closeFabEditModal()" class="px-4 py-2 text-sm text-slate-600 hover:bg-slate-100 rounded-lg">Cancel</button>
+      <button onclick="saveFabEdit('${jobId}', '${opId}')" class="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700">Save</button>
+    </div>
+  ` : `
+    <div class="grid gap-3 md:grid-cols-2">
+      <div><label class="block text-xs font-medium text-slate-600 mb-1">Job Name</label><input id="fabEditName" class="w-full px-3 py-2 border border-slate-200 rounded-lg" value="${escapeHtml(item.name)}"></div>
+      <div><label class="block text-xs font-medium text-slate-600 mb-1">Project</label><select id="fabEditProject" class="w-full px-3 py-2 border border-slate-200 rounded-lg">${projectOptions(item.projectId)}</select></div>
+      <div><label class="block text-xs font-medium text-slate-600 mb-1">Start Date</label><input id="fabEditStart" type="date" class="w-full px-3 py-2 border border-slate-200 rounded-lg" value="${item.startDate || ''}"></div>
+      <div><label class="block text-xs font-medium text-slate-600 mb-1">End Date</label><input id="fabEditEnd" type="date" class="w-full px-3 py-2 border border-slate-200 rounded-lg" value="${item.endDate || ''}"></div>
+      <div><label class="block text-xs font-medium text-slate-600 mb-1">Status</label><select id="fabEditStatus" class="w-full px-3 py-2 border border-slate-200 rounded-lg">${statusOptions}</select></div>
+      <div><label class="block text-xs font-medium text-slate-600 mb-1">Progress (%)</label><input id="fabEditProgress" type="number" min="0" max="100" class="w-full px-3 py-2 border border-slate-200 rounded-lg" value="${item.progress || 0}"></div>
+      <div><label class="block text-xs font-medium text-slate-600 mb-1">Labour Hours</label><input id="fabEditLabour" type="number" class="w-full px-3 py-2 border border-slate-200 rounded-lg" value="${item.labourHours || 0}"></div>
+      <div><label class="block text-xs font-medium text-slate-600 mb-1">Cost</label><input id="fabEditCost" type="number" class="w-full px-3 py-2 border border-slate-200 rounded-lg" value="${item.cost || 0}"></div>
+    </div>
+    <div><label class="block text-xs font-medium text-slate-600 mb-1">Materials</label><input id="fabEditMaterials" class="w-full px-3 py-2 border border-slate-200 rounded-lg" value="${escapeHtml(item.materials || '')}"></div>
+    <div><label class="block text-xs font-medium text-slate-600 mb-1">Notes</label><textarea id="fabEditNotes" rows="2" class="w-full px-3 py-2 border border-slate-200 rounded-lg">${escapeHtml(item.notes || '')}</textarea></div>
+    <div class="flex justify-end gap-2 pt-2">
+      <button onclick="closeFabEditModal()" class="px-4 py-2 text-sm text-slate-600 hover:bg-slate-100 rounded-lg">Cancel</button>
+      <button onclick="saveFabEdit('${jobId}', '${opId}')" class="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700">Save</button>
+    </div>
+  `;
+
+  document.getElementById('fabEditModalTitle').textContent = title;
+  document.getElementById('fabEditModalBody').innerHTML = body;
+  document.getElementById('fabEditModal').classList.remove('hidden');
+}
+
+function closeFabEditModal() {
+  document.getElementById('fabEditModal').classList.add('hidden');
+}
+
+function saveFabEdit(jobId, opId) {
+  const data = getData();
+  const jobs = data.fabricationJobs.map(j => {
+    if (j.id !== jobId) return j;
+    const isOp = opId && opId !== jobId;
+    if (isOp) {
+      return {
+        ...j,
+        operations: j.operations.map(o => {
+          if (o.id !== opId) return o;
+          return {
+            ...o,
+            name: document.getElementById('fabEditName').value || o.name,
+            assignee: document.getElementById('fabEditAssignee')?.value || o.assignee,
+            startDate: document.getElementById('fabEditStart').value,
+            endDate: document.getElementById('fabEditEnd').value,
+            status: document.getElementById('fabEditStatus').value,
+            progress: Number(document.getElementById('fabEditProgress').value || 0)
+          };
+        })
+      };
+    }
+    return {
+      ...j,
+      name: document.getElementById('fabEditName').value || j.name,
+      projectId: document.getElementById('fabEditProject').value,
+      startDate: document.getElementById('fabEditStart').value,
+      endDate: document.getElementById('fabEditEnd').value,
+      status: document.getElementById('fabEditStatus').value,
+      progress: Number(document.getElementById('fabEditProgress').value || 0),
+      labourHours: Number(document.getElementById('fabEditLabour').value || 0),
+      cost: Number(document.getElementById('fabEditCost').value || 0),
+      materials: document.getElementById('fabEditMaterials').value,
+      notes: document.getElementById('fabEditNotes').value
+    };
+  });
+  saveData({ fabricationJobs: jobs });
+  showToast('Saved successfully', 'success');
+  closeFabEditModal();
+  render();
+}
+
+function openFabAddOpModal(jobId) {
+  const data = getData();
+  const job = data.fabricationJobs.find(j => j.id === jobId);
+  if (!job) return;
+  const userOptions = data.users.map(u => `<option>${u.name}</option>`).join('');
+  const statusOptions = ['Planned', 'In Production', 'Quality Check', 'Completed'].map(s => `<option>${s}</option>`).join('');
+  const body = `
+    <div class="grid gap-3 md:grid-cols-2">
+      <div><label class="block text-xs font-medium text-slate-600 mb-1">Operation Name</label><input id="fabAddOpName" class="w-full px-3 py-2 border border-slate-200 rounded-lg" placeholder="e.g. Welding"></div>
+      <div><label class="block text-xs font-medium text-slate-600 mb-1">Assignee</label><select id="fabAddOpAssignee" class="w-full px-3 py-2 border border-slate-200 rounded-lg">${userOptions}</select></div>
+      <div><label class="block text-xs font-medium text-slate-600 mb-1">Start Date</label><input id="fabAddOpStart" type="date" class="w-full px-3 py-2 border border-slate-200 rounded-lg"></div>
+      <div><label class="block text-xs font-medium text-slate-600 mb-1">End Date</label><input id="fabAddOpEnd" type="date" class="w-full px-3 py-2 border border-slate-200 rounded-lg"></div>
+      <div><label class="block text-xs font-medium text-slate-600 mb-1">Status</label><select id="fabAddOpStatus" class="w-full px-3 py-2 border border-slate-200 rounded-lg">${statusOptions}</select></div>
+      <div><label class="block text-xs font-medium text-slate-600 mb-1">Progress (%)</label><input id="fabAddOpProgress" type="number" min="0" max="100" class="w-full px-3 py-2 border border-slate-200 rounded-lg" value="0"></div>
+    </div>
+    <div class="flex justify-end gap-2 pt-2">
+      <button onclick="closeFabEditModal()" class="px-4 py-2 text-sm text-slate-600 hover:bg-slate-100 rounded-lg">Cancel</button>
+      <button onclick="saveFabAddOp('${jobId}')" class="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700">Add Operation</button>
+    </div>
+  `;
+  document.getElementById('fabEditModalTitle').textContent = `Add Operation to ${job.name}`;
+  document.getElementById('fabEditModalBody').innerHTML = body;
+  document.getElementById('fabEditModal').classList.remove('hidden');
+}
+
+function saveFabAddOp(jobId) {
+  const data = getData();
+  const op = {
+    id: generateId('op'),
+    name: document.getElementById('fabAddOpName').value || 'Operation',
+    assignee: document.getElementById('fabAddOpAssignee').value,
+    startDate: document.getElementById('fabAddOpStart').value,
+    endDate: document.getElementById('fabAddOpEnd').value,
+    status: document.getElementById('fabAddOpStatus').value,
+    progress: Number(document.getElementById('fabAddOpProgress').value || 0)
+  };
+  const jobs = data.fabricationJobs.map(j => {
+    if (j.id !== jobId) return j;
+    return { ...j, operations: [...(j.operations || []), op] };
+  });
+  saveData({ fabricationJobs: jobs });
+  showToast('Operation added', 'success');
+  closeFabEditModal();
   render();
 }
 
@@ -1462,23 +1891,23 @@ function render() {
 function renderLogin() {
   return `
     <div class="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
-      <div class="w-full max-w-md bg-white rounded-xl shadow-lg p-8">
-        <div class="text-center mb-6">
-          <div class="mx-auto h-20 w-72 rounded-lg bg-white flex items-center justify-center mb-4 border border-slate-100 overflow-hidden">
+      <div class="w-full max-w-sm bg-white rounded-xl shadow-lg p-8">
+        <div class="text-center mb-8">
+          <div class="mx-auto h-16 w-60 rounded-lg bg-white flex items-center justify-center mb-4 overflow-hidden">
             <img src="plenser-logo.png" alt="Plenser" class="max-h-full max-w-full object-contain">
           </div>
-          <h1 class="text-2xl font-bold text-slate-900">Plenser R&D</h1>
+          <h1 class="text-xl font-bold text-slate-900">Plenser R&D</h1>
           <p class="text-sm text-slate-500 mt-1">Innovation & Performance Tracker</p>
         </div>
-        <form id="loginForm" class="space-y-4">
+        <form id="loginForm" class="space-y-5">
           <div>
-            <label class="block text-sm font-medium text-slate-700 mb-1">Email</label>
-            <input type="email" id="loginEmail" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="you@plenser.com" value="admin@plenser.com" required>
+            <label class="block text-sm font-medium text-slate-700 mb-1.5">Email</label>
+            <input type="email" id="loginEmail" class="w-full px-3 py-2.5 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="Enter your email" required>
           </div>
           <div>
-            <label class="block text-sm font-medium text-slate-700 mb-1">Password</label>
+            <label class="block text-sm font-medium text-slate-700 mb-1.5">Password</label>
             <div class="relative">
-              <input type="password" id="loginPassword" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Enter password" value="admin123" required>
+              <input type="password" id="loginPassword" class="w-full px-3 py-2.5 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="Enter your password" required>
               <button type="button" id="togglePassword" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
                 <i class="fa-solid fa-eye"></i>
               </button>
@@ -1489,7 +1918,6 @@ function renderLogin() {
             Sign In
           </button>
         </form>
-        <p class="text-center text-xs text-slate-400 mt-4">Default: admin@plenser.com / admin123</p>
       </div>
     </div>
   `;
